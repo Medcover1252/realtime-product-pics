@@ -5,24 +5,13 @@ import CategoryFilter from "@/components/CategoryFilter";
 import SheetConfig from "@/components/SheetConfig";
 import { RefreshCw } from "lucide-react";
 
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS2WfbKQyb6FdmyDiV9rt01kPUg-Fu7IPma8umPUD9ot8xx6RWeRhg8yrFK4CqH8pjR-24jkdH_n7Ve/pubhtml";
+
 const Index = () => {
-  const [sheetUrl, setSheetUrl] = useState<string>(() => {
-    return localStorage.getItem("sheet_url") || "";
-  });
-
-  const handleConnect = (url: string) => {
-    localStorage.setItem("sheet_url", url);
-    setSheetUrl(url);
-  };
-
-  if (!sheetUrl) {
-    return <SheetConfig onSubmit={handleConnect} />;
-  }
-
-  return <CatalogView sheetUrl={sheetUrl} onDisconnect={() => handleConnect("")} />;
+  return <CatalogView sheetUrl={SHEET_URL} />;
 };
 
-function CatalogView({ sheetUrl, onDisconnect }: { sheetUrl: string; onDisconnect: () => void }) {
+function CatalogView({ sheetUrl }: { sheetUrl: string }) {
   const { products, loading, error, lastUpdated, refresh } = useGoogleSheet(sheetUrl);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [refreshing, setRefreshing] = useState(false);
@@ -63,12 +52,6 @@ function CatalogView({ sheetUrl, onDisconnect }: { sheetUrl: string; onDisconnec
               title="รีเฟรช"
             >
               <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-            </button>
-            <button
-              onClick={onDisconnect}
-              className="rounded-lg bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground hover:bg-accent"
-            >
-              เปลี่ยน Sheet
             </button>
           </div>
         </div>
