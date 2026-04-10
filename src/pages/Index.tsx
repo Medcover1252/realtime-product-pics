@@ -53,12 +53,6 @@ function CatalogView({ sheetUrl }: { sheetUrl: string }) {
             >
               <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
             </button>
-            <button
-              onClick={onDisconnect}
-              className="rounded-lg bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground hover:bg-accent"
-            >
-              เปลี่ยน Sheet
-            </button>
           </div>
         </div>
       </header>
