@@ -11,7 +11,7 @@ const Index = () => {
   return <CatalogView sheetUrl={SHEET_URL} />;
 };
 
-function CatalogView({ sheetUrl, onDisconnect }: { sheetUrl: string; onDisconnect: () => void }) {
+function CatalogView({ sheetUrl }: { sheetUrl: string }) {
   const { products, loading, error, lastUpdated, refresh } = useGoogleSheet(sheetUrl);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [refreshing, setRefreshing] = useState(false);
