@@ -14,7 +14,10 @@ export interface Product {
   expiryDate: string;
   boxCount: string;
   imageCol: string;
+  quantity: string;
   price: string;
+  priceVVIP: string;
+  status: string;
 }
 
 const REFRESH_INTERVAL = 30_000;
@@ -97,6 +100,7 @@ export function useGoogleSheet(sheetUrl: string) {
       }
 
       // Headers: บาร์โค้ด,บาร์โค้ดกล่อง,Brand,หมวด,Serie รุ่น,ชื่อเรียก,รวม,รูป,URL ของรูป,วันหมดอายุ,จำนวนลัง,Image,ราคา
+      // Headers: บาร์โค้ด,บาร์โค้ดกล่อง,Brand,หมวด,Serie รุ่น,ชื่อเรียก,รวม,รูป,URL ของรูป,วันหมดอายุ,จำนวนลัง,Image,จำนวน,ราคา,ราคาVVIP,เปิด/ปิดสินค้า
       const items: Product[] = rows.slice(1).map((row, i) => ({
         id: String(i),
         barcode: row[0] || "",
@@ -111,8 +115,11 @@ export function useGoogleSheet(sheetUrl: string) {
         expiryDate: row[9] || "",
         boxCount: row[10] || "",
         imageCol: row[11] || "",
-        price: row[12] || "",
-      })).filter((p) => p.barcode || p.combined);
+        quantity: row[12] || "",
+        price: row[13] || "",
+        priceVVIP: row[14] || "",
+        status: row[15] || "",
+      })).filter((p) => (p.barcode || p.combined) && p.status !== "ปิด");
 
       setProducts(items);
       setLastUpdated(new Date());
