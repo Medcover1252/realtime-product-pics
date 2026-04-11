@@ -19,6 +19,9 @@ const ProductDetail = ({ product, open, onClose }: Props) => {
   const formattedPrice = product.price
     ? `฿${Number(product.price).toLocaleString()}`
     : "";
+  const formattedVVIP = product.priceVVIP
+    ? `฿${Number(product.priceVVIP).toLocaleString()}`
+    : "";
 
   const details = [
     { label: "บาร์โค้ด", value: product.barcode },
@@ -29,7 +32,10 @@ const ProductDetail = ({ product, open, onClose }: Props) => {
     { label: "ชื่อเรียก", value: product.nickname },
     { label: "วันหมดอายุ", value: product.expiryDate },
     { label: "จำนวนลัง", value: product.boxCount },
+    { label: "จำนวน", value: product.quantity },
     { label: "ราคา", value: formattedPrice },
+    { label: "ราคา VVIP", value: formattedVVIP },
+    { label: "สถานะ", value: product.status },
   ].filter((d) => d.value);
 
   return (

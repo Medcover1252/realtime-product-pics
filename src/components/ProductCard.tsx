@@ -9,6 +9,9 @@ const ProductCard = ({ product, onClick }: Props) => {
   const formattedPrice = product.price
     ? `฿${Number(product.price).toLocaleString()}`
     : "";
+  const formattedVVIP = product.priceVVIP
+    ? `฿${Number(product.priceVVIP).toLocaleString()}`
+    : "";
 
   const imgSrc = product.imageUrl || "";
 
@@ -44,9 +47,12 @@ const ProductCard = ({ product, onClick }: Props) => {
           <p className="text-muted-foreground text-xs">{product.category}</p>
         )}
         {formattedPrice && (
-          <p className="font-bold text-primary text-lg">
-            {formattedPrice}
-          </p>
+          <div className="flex items-baseline gap-2">
+            <p className="font-bold text-primary text-lg">{formattedPrice}</p>
+            {formattedVVIP && (
+              <p className="text-xs text-muted-foreground line-through">{formattedVVIP}</p>
+            )}
+          </div>
         )}
       </div>
     </div>
