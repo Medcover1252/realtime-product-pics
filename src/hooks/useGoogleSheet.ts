@@ -2,30 +2,35 @@ import { useState, useEffect, useCallback } from "react";
 
 export interface Product {
   id: string;
-  name: string;
-  price: string;
-  image: string;
-  description: string;
+  barcode: string;
+  barcodeBox: string;
+  brand: string;
   category: string;
+  serie: string;
+  nickname: string;
+  combined: string;
+  image: string;
+  imageUrl: string;
+  expiryDate: string;
+  boxCount: string;
+  imageCol: string;
+  price: string;
 }
 
 const REFRESH_INTERVAL = 30_000;
 
 function buildCsvUrl(url: string): string {
-  // Published URL: /d/e/2PACX-.../pubhtml → use pub?output=csv
   if (url.includes("/pubhtml")) {
-    return url.replace(/\/pubhtml.*$/, "/pub?output=csv&gid=0");
+    return url.replace(/\/pubhtml.*$/, "/pub?output=csv&gid=1123294632");
   }
   if (url.includes("/pub")) {
-    return url.replace(/\/pub.*$/, "/pub?output=csv&gid=0");
+    return url.replace(/\/pub.*$/, "/pub?output=csv&gid=1123294632");
   }
-  // Edit URL: /d/SHEET_ID/... → use export?format=csv
   const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
   if (match) {
-    return `https://docs.google.com/spreadsheets/d/${match[1]}/export?format=csv&gid=0`;
+    return `https://docs.google.com/spreadsheets/d/${match[1]}/export?format=csv&gid=1123294632`;
   }
-  // Fallback: treat as raw ID
-  return `https://docs.google.com/spreadsheets/d/${url}/export?format=csv&gid=0`;
+  return `https://docs.google.com/spreadsheets/d/${url}/export?format=csv&gid=1123294632`;
 }
 
 function parseCsv(text: string): string[][] {
@@ -91,25 +96,23 @@ export function useGoogleSheet(sheetUrl: string) {
         return;
       }
 
-      // Map header row to indices
-      const headers = rows[0].map((h) => h.toLowerCase().trim());
-      const colMap: Record<string, number> = {};
-      headers.forEach((h, i) => { colMap[h] = i; });
-
-      const nameIdx = colMap["ชื่อ"] ?? colMap["ชื่อสินค้า"] ?? colMap["name"] ?? 0;
-      const priceIdx = colMap["ราคา"] ?? colMap["price"] ?? 1;
-      const imageIdx = colMap["รูป"] ?? colMap["รูปภาพ"] ?? colMap["image"] ?? 2;
-      const descIdx = colMap["รายละเอียด"] ?? colMap["description"] ?? 3;
-      const catIdx = colMap["หมวดหมู่"] ?? colMap["category"] ?? 4;
-
+      // Headers: บาร์โค้ด,บาร์โค้ดกล่อง,Brand,หมวด,Serie รุ่น,ชื่อเรียก,รวม,รูป,URL ของรูป,วันหมดอายุ,จำนวนลัง,Image,ราคา
       const items: Product[] = rows.slice(1).map((row, i) => ({
         id: String(i),
-        name: row[nameIdx] || "",
-        price: row[priceIdx] || "",
-        image: row[imageIdx] || "",
-        description: row[descIdx] || "",
-        category: row[catIdx] || "",
-      })).filter((p) => p.name);
+        barcode: row[0] || "",
+        barcodeBox: row[1] || "",
+        brand: row[2] || "",
+        category: row[3] || "",
+        serie: row[4] || "",
+        nickname: row[5] || "",
+        combined: row[6] || "",
+        image: row[7] || "",
+        imageUrl: row[8] || "",
+        expiryDate: row[9] || "",
+        boxCount: row[10] || "",
+        imageCol: row[11] || "",
+        price: row[12] || "",
+      })).filter((p) => p.barcode || p.combined);
 
       setProducts(items);
       setLastUpdated(new Date());

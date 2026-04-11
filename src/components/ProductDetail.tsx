@@ -1,0 +1,67 @@
+import type { Product } from "@/hooks/useGoogleSheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+interface Props {
+  product: Product | null;
+  open: boolean;
+  onClose: () => void;
+}
+
+const ProductDetail = ({ product, open, onClose }: Props) => {
+  if (!product) return null;
+
+  const imgSrc = product.imageUrl || "";
+  const formattedPrice = product.price
+    ? `฿${Number(product.price).toLocaleString()}`
+    : "";
+
+  const details = [
+    { label: "บาร์โค้ด", value: product.barcode },
+    { label: "บาร์โค้ดกล่อง", value: product.barcodeBox },
+    { label: "Brand", value: product.brand },
+    { label: "หมวด", value: product.category },
+    { label: "Serie รุ่น", value: product.serie },
+    { label: "ชื่อเรียก", value: product.nickname },
+    { label: "วันหมดอายุ", value: product.expiryDate },
+    { label: "จำนวนลัง", value: product.boxCount },
+    { label: "ราคา", value: formattedPrice },
+  ].filter((d) => d.value);
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-xl">
+            {product.combined || product.nickname || product.barcode}
+          </DialogTitle>
+        </DialogHeader>
+
+        {imgSrc && (
+          <div className="w-full overflow-hidden rounded-lg bg-muted">
+            <img
+              src={imgSrc}
+              alt={product.combined || product.barcode}
+              className="w-full max-h-[400px] object-contain"
+            />
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {details.map((d) => (
+            <div key={d.label} className="rounded-lg bg-secondary/50 p-3">
+              <p className="text-xs text-muted-foreground">{d.label}</p>
+              <p className="font-medium text-foreground text-sm mt-0.5">{d.value}</p>
+            </div>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default ProductDetail;
