@@ -34,8 +34,6 @@ const ProductDetail = ({ product, open, onClose }: Props) => {
     { label: "จำนวนลัง", value: product.boxCount },
     { label: "จำนวน", value: product.quantity },
     { label: "ราคา", value: formattedPrice },
-    { label: "ราคา VVIP", value: formattedVVIP },
-    { label: "สถานะ", value: product.status },
   ].filter((d) => d.value);
 
   return (
@@ -48,13 +46,13 @@ const ProductDetail = ({ product, open, onClose }: Props) => {
         </DialogHeader>
 
         {imgSrc && (
-          <div className="w-full overflow-hidden rounded-lg bg-muted">
+          <a href={imgSrc} target="_blank" rel="noopener noreferrer" className="block w-full overflow-hidden rounded-lg bg-muted cursor-zoom-in">
             <img
               src={imgSrc}
               alt={product.combined || product.barcode}
               className="w-full max-h-[400px] object-contain"
             />
-          </div>
+          </a>
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

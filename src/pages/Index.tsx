@@ -3,7 +3,12 @@ import { useGoogleSheet, type Product } from "@/hooks/useGoogleSheet";
 import ProductCard from "@/components/ProductCard";
 import ProductDetail from "@/components/ProductDetail";
 import CategoryFilter, { type FilterKey } from "@/components/CategoryFilter";
-import { RefreshCw, Search } from "lucide-react";
+import { RefreshCw, Search, SlidersHorizontal } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS8ZAxsN3ZCSa2VxpmMNpCPDjEubNVYJKkier6mZ_3NYnOr-of5F3HqDBgOXAL3XbzDE9T4yWv4pk0c/pubhtml";
 
@@ -17,6 +22,8 @@ const Index = () => {
   const [search, setSearch] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  const activeFilterCount = Object.values(activeFilters).filter(Boolean).length;
 
   const filtered = useMemo(() => {
     return products.filter((p) => {
@@ -45,14 +52,48 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-10 border-b border-border bg-card/80 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
-          <h1 className="text-2xl font-bold text-foreground">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
+          <h1 className="text-xl font-bold text-foreground sm:text-2xl">
             📦 รายการสินค้า
           </h1>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {/* Search */}
+            <div className="relative hidden sm:block">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="ค้นหาสินค้า..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-48 lg:w-64 rounded-lg border border-border bg-background pl-9 pr-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+              />
+            </div>
+
+            {/* Filter popover */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="relative rounded-lg border border-border p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                  <SlidersHorizontal className="h-4 w-4" />
+                  {activeFilterCount > 0 && (
+                    <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80" align="end">
+                <p className="text-sm font-semibold text-foreground mb-3">ตัวกรอง</p>
+                <CategoryFilter
+                  products={products}
+                  activeFilters={activeFilters}
+                  onFilterChange={handleFilterChange}
+                />
+              </PopoverContent>
+            </Popover>
+
             {lastUpdated && (
-              <span className="hidden text-xs text-muted-foreground sm:block">
-                อัพเดตล่าสุด: {lastUpdated.toLocaleTimeString("th-TH")}
+              <span className="hidden text-xs text-muted-foreground lg:block">
+                {lastUpdated.toLocaleTimeString("th-TH")}
               </span>
             )}
             <button
@@ -64,6 +105,20 @@ const Index = () => {
             </button>
           </div>
         </div>
+
+        {/* Mobile search */}
+        <div className="mx-auto max-w-7xl px-4 pb-3 sm:hidden">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="ค้นหาสินค้า..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full rounded-lg border border-border bg-background pl-9 pr-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
+          </div>
+        </div>
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-5">
@@ -72,25 +127,6 @@ const Index = () => {
             {error}
           </div>
         )}
-
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="ค้นหาสินค้า... (บาร์โค้ด, ชื่อ, Brand)"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-lg border border-border bg-card pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-          />
-        </div>
-
-        {/* Filters */}
-        <CategoryFilter
-          products={products}
-          activeFilters={activeFilters}
-          onFilterChange={handleFilterChange}
-        />
 
         {loading ? (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
@@ -122,7 +158,7 @@ const Index = () => {
         )}
 
         <p className="text-center text-xs text-muted-foreground">
-          อัพเดตอัตโนมัติทุก 30 วินาที • สินค้าทั้งหมด {products.length} รายการ
+          สินค้าทั้งหมด {products.length} รายการ
         </p>
       </main>
 
