@@ -127,6 +127,39 @@ const Index = () => {
         </div>
       </header>
 
+      {/* Announcement Banner */}
+      {showAnnouncement && (
+        <div className="border-b border-border bg-primary/5">
+          <div className="mx-auto max-w-7xl px-4 py-2 sm:px-6 flex items-center gap-2">
+            <Megaphone className="h-4 w-4 text-primary shrink-0" />
+            {editingAnnouncement ? (
+              <input
+                autoFocus
+                type="text"
+                value={announcement}
+                onChange={(e) => setAnnouncement(e.target.value)}
+                onBlur={() => setEditingAnnouncement(false)}
+                onKeyDown={(e) => e.key === "Enter" && setEditingAnnouncement(false)}
+                className="flex-1 bg-transparent text-sm text-foreground border-b border-primary/30 focus:outline-none focus:border-primary py-0.5"
+              />
+            ) : (
+              <div
+                className="flex-1 overflow-hidden cursor-pointer"
+                onClick={() => setEditingAnnouncement(true)}
+                title="คลิกเพื่อแก้ไขข้อความ"
+              >
+                <p className="text-sm text-foreground whitespace-nowrap overflow-x-auto scrollbar-none">
+                  {announcement}
+                </p>
+              </div>
+            )}
+            <button onClick={() => setShowAnnouncement(false)} className="text-muted-foreground hover:text-foreground">
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-5">
         {error && (
           <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive">
