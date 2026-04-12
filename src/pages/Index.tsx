@@ -3,7 +3,7 @@ import { useGoogleSheet, type Product } from "@/hooks/useGoogleSheet";
 import ProductCard from "@/components/ProductCard";
 import ProductDetail from "@/components/ProductDetail";
 import CategoryFilter, { type FilterKey } from "@/components/CategoryFilter";
-import { RefreshCw, Search, SlidersHorizontal } from "lucide-react";
+import { RefreshCw, Search, SlidersHorizontal, Megaphone, X } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -11,6 +11,9 @@ import {
 } from "@/components/ui/popover";
 
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS8ZAxsN3ZCSa2VxpmMNpCPDjEubNVYJKkier6mZ_3NYnOr-of5F3HqDBgOXAL3XbzDE9T4yWv4pk0c/pubhtml";
+
+const DEFAULT_ANNOUNCEMENT = "ยินดีต้อนรับสู่ร้านค้าของเรา! 🎉 สินค้าใหม่อัปเดตทุกวัน";
+
 
 const Index = () => {
   const { products, loading, error, lastUpdated, refresh } = useGoogleSheet(SHEET_URL);
@@ -22,6 +25,9 @@ const Index = () => {
   const [search, setSearch] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [announcement, setAnnouncement] = useState(DEFAULT_ANNOUNCEMENT);
+  const [editingAnnouncement, setEditingAnnouncement] = useState(false);
+  const [showAnnouncement, setShowAnnouncement] = useState(true);
 
   const activeFilterCount = Object.values(activeFilters).filter(Boolean).length;
 
@@ -120,6 +126,39 @@ const Index = () => {
           </div>
         </div>
       </header>
+
+      {/* Announcement Banner */}
+      {showAnnouncement && (
+        <div className="border-b border-border bg-primary/5">
+          <div className="mx-auto max-w-7xl px-4 py-2 sm:px-6 flex items-center gap-2">
+            <Megaphone className="h-4 w-4 text-primary shrink-0" />
+            {editingAnnouncement ? (
+              <input
+                autoFocus
+                type="text"
+                value={announcement}
+                onChange={(e) => setAnnouncement(e.target.value)}
+                onBlur={() => setEditingAnnouncement(false)}
+                onKeyDown={(e) => e.key === "Enter" && setEditingAnnouncement(false)}
+                className="flex-1 bg-transparent text-sm text-foreground border-b border-primary/30 focus:outline-none focus:border-primary py-0.5"
+              />
+            ) : (
+              <div
+                className="flex-1 overflow-hidden cursor-pointer"
+                onClick={() => setEditingAnnouncement(true)}
+                title="คลิกเพื่อแก้ไขข้อความ"
+              >
+                <p className="text-sm text-foreground whitespace-nowrap overflow-x-auto scrollbar-none">
+                  {announcement}
+                </p>
+              </div>
+            )}
+            <button onClick={() => setShowAnnouncement(false)} className="text-muted-foreground hover:text-foreground">
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-5">
         {error && (
