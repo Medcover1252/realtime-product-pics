@@ -9,9 +9,6 @@ const ProductCard = ({ product, onClick }: Props) => {
   const formattedPrice = product.price
     ? `฿${Number(product.price).toLocaleString()}`
     : "";
-  const formattedVVIP = product.priceVVIP
-    ? `฿${Number(product.priceVVIP).toLocaleString()}`
-    : "";
 
   const imgSrc = product.imageUrl || "";
 
@@ -46,14 +43,17 @@ const ProductCard = ({ product, onClick }: Props) => {
         {product.category && (
           <p className="text-muted-foreground text-xs">{product.category}</p>
         )}
-        {formattedPrice && (
-          <div className="flex items-baseline gap-2">
+        <div className="flex items-end justify-between gap-2">
+          {formattedPrice && (
             <p className="font-bold text-primary text-lg">{formattedPrice}</p>
-            {formattedVVIP && (
-              <p className="text-xs text-muted-foreground line-through">{formattedVVIP}</p>
-            )}
-          </div>
-        )}
+          )}
+          {product.quantity && (
+            <p className="text-right font-extrabold text-foreground text-xl tracking-tight leading-none">
+              {product.quantity}
+              <span className="block text-[10px] font-medium text-muted-foreground tracking-normal">จำนวน</span>
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
