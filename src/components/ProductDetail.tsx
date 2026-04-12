@@ -10,9 +10,10 @@ interface Props {
   product: Product | null;
   open: boolean;
   onClose: () => void;
+  canSeeVVIP?: boolean;
 }
 
-const ProductDetail = ({ product, open, onClose }: Props) => {
+const ProductDetail = ({ product, open, onClose, canSeeVVIP = false }: Props) => {
   if (!product) return null;
 
   const imgSrc = product.imageUrl || "";
