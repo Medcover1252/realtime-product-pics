@@ -87,7 +87,7 @@ const Index = () => {
                   )}
                 </button>
               </PopoverTrigger>
-              <PopoverContent className="w-80" align="end">
+              <PopoverContent className="w-80 max-h-[70vh] overflow-y-auto" align="end">
                 <p className="text-sm font-semibold text-foreground mb-3">ตัวกรอง</p>
                 <CategoryFilter
                   products={products}
