@@ -101,6 +101,31 @@ const Index = () => {
               </PopoverContent>
             </Popover>
 
+            {/* VVIP Login */}
+            {session ? (
+              <div className="flex items-center gap-1.5">
+                <span className="hidden sm:flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                  <Crown className="h-3 w-3" />
+                  {session.id}
+                </span>
+                <button
+                  onClick={logout}
+                  className="rounded-lg border border-border p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                  title="ออกจากระบบ"
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowLogin(true)}
+                className="rounded-lg border border-border p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                title="เข้าสู่ระบบ VVIP"
+              >
+                <LogIn className="h-4 w-4" />
+              </button>
+            )}
+
             {lastUpdated && (
               <span className="hidden text-xs text-muted-foreground lg:block">
                 {lastUpdated.toLocaleTimeString("th-TH")}
@@ -209,6 +234,15 @@ const Index = () => {
         product={selectedProduct}
         open={!!selectedProduct}
         onClose={() => setSelectedProduct(null)}
+        canSeeVVIP={canSeeVVIP}
+      />
+
+      <VVIPLoginDialog
+        open={showLogin}
+        onClose={() => setShowLogin(false)}
+        onLogin={login}
+        loading={authLoading}
+        error={authError}
       />
     </div>
   );
