@@ -1,9 +1,11 @@
 import { useState, useMemo } from "react";
 import { useGoogleSheet, type Product } from "@/hooks/useGoogleSheet";
+import { useCustomerAuth } from "@/hooks/useCustomerAuth";
 import ProductCard from "@/components/ProductCard";
 import ProductDetail from "@/components/ProductDetail";
 import CategoryFilter, { type FilterKey } from "@/components/CategoryFilter";
-import { RefreshCw, Search, SlidersHorizontal, Megaphone, X } from "lucide-react";
+import VVIPLoginDialog from "@/components/VVIPLoginDialog";
+import { RefreshCw, Search, SlidersHorizontal, Megaphone, X, LogIn, LogOut, Crown } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -17,6 +19,7 @@ const DEFAULT_ANNOUNCEMENT = "ยินดีต้อนรับสู่ร�
 
 const Index = () => {
   const { products, loading, error, lastUpdated, refresh } = useGoogleSheet(SHEET_URL);
+  const { session, login, logout, loading: authLoading, error: authError, canSeeVVIP } = useCustomerAuth();
   const [activeFilters, setActiveFilters] = useState<Record<FilterKey, string>>({
     brand: "",
     category: "",
@@ -28,6 +31,7 @@ const Index = () => {
   const [announcement, setAnnouncement] = useState(DEFAULT_ANNOUNCEMENT);
   const [editingAnnouncement, setEditingAnnouncement] = useState(false);
   const [showAnnouncement, setShowAnnouncement] = useState(true);
+  const [showLogin, setShowLogin] = useState(false);
 
   const activeFilterCount = Object.values(activeFilters).filter(Boolean).length;
 
