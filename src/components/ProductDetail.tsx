@@ -10,9 +10,10 @@ interface Props {
   product: Product | null;
   open: boolean;
   onClose: () => void;
+  canSeeVVIP?: boolean;
 }
 
-const ProductDetail = ({ product, open, onClose }: Props) => {
+const ProductDetail = ({ product, open, onClose, canSeeVVIP = false }: Props) => {
   if (!product) return null;
 
   const imgSrc = product.imageUrl || "";
@@ -34,6 +35,7 @@ const ProductDetail = ({ product, open, onClose }: Props) => {
     { label: "จำนวนลัง", value: product.boxCount },
     { label: "จำนวน", value: product.quantity },
     { label: "ราคา", value: formattedPrice },
+    ...(canSeeVVIP && formattedVVIP ? [{ label: "ราคา VVIP", value: formattedVVIP }] : []),
   ].filter((d) => d.value);
 
   return (
