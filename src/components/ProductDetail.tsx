@@ -35,7 +35,7 @@ const ProductDetail = ({ product, open, onClose, canSeeVVIP = false }: Props) =>
     { label: "จำนวนลัง", value: product.boxCount },
     { label: "จำนวน", value: product.quantity },
     { label: "ราคา", value: formattedPrice },
-  ].filter((d) => d.value);
+    ...(canSeeVVIP && formattedVVIP ? [{ label: "ราคา VVIP", value: formattedVVIP }] : []),
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
