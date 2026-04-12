@@ -3,7 +3,7 @@ import { useGoogleSheet, type Product } from "@/hooks/useGoogleSheet";
 import ProductCard from "@/components/ProductCard";
 import ProductDetail from "@/components/ProductDetail";
 import CategoryFilter, { type FilterKey } from "@/components/CategoryFilter";
-import { RefreshCw, Search, SlidersHorizontal } from "lucide-react";
+import { RefreshCw, Search, SlidersHorizontal, Megaphone, X } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -11,6 +11,9 @@ import {
 } from "@/components/ui/popover";
 
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS8ZAxsN3ZCSa2VxpmMNpCPDjEubNVYJKkier6mZ_3NYnOr-of5F3HqDBgOXAL3XbzDE9T4yWv4pk0c/pubhtml";
+
+const DEFAULT_ANNOUNCEMENT = "ยินดีต้อนรับสู่ร้านค้าของเรา! 🎉 สินค้าใหม่อัปเดตทุกวัน";
+
 
 const Index = () => {
   const { products, loading, error, lastUpdated, refresh } = useGoogleSheet(SHEET_URL);
@@ -22,6 +25,9 @@ const Index = () => {
   const [search, setSearch] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [announcement, setAnnouncement] = useState(DEFAULT_ANNOUNCEMENT);
+  const [editingAnnouncement, setEditingAnnouncement] = useState(false);
+  const [showAnnouncement, setShowAnnouncement] = useState(true);
 
   const activeFilterCount = Object.values(activeFilters).filter(Boolean).length;
 
