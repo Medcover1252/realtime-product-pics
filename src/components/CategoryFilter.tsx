@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import type { Product } from "@/hooks/useGoogleSheet";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 type FilterKey = "brand" | "category" | "serie";
