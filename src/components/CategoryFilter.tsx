@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import type { Product } from "@/hooks/useGoogleSheet";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 type FilterKey = "brand" | "category" | "serie";
@@ -41,8 +40,8 @@ const CategoryFilter = ({ products, activeFilters, onFilterChange }: Props) => {
   }, [products]);
 
   return (
-    <ScrollArea className="max-h-[60vh]">
-      <div className="space-y-3 pr-2">
+    <div className="max-h-[50vh] overflow-y-auto pr-1" style={{ scrollbarWidth: 'thin' }}>
+      <div className="space-y-4">
         {FILTERS.map((f) => {
           const vals = options[f.key];
           if (vals.length < 2) return null;
@@ -94,7 +93,7 @@ const CategoryFilter = ({ products, activeFilters, onFilterChange }: Props) => {
           );
         })}
       </div>
-    </ScrollArea>
+    </div>
   );
 };
 

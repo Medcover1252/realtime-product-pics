@@ -5,7 +5,7 @@ import ProductCard from "@/components/ProductCard";
 import ProductDetail from "@/components/ProductDetail";
 import CategoryFilter, { type FilterKey } from "@/components/CategoryFilter";
 import VVIPLoginDialog from "@/components/VVIPLoginDialog";
-import { RefreshCw, Search, SlidersHorizontal, Megaphone, X, LogIn, LogOut, Crown } from "lucide-react";
+import { RefreshCw, Search, SlidersHorizontal, Megaphone, X, LogIn, LogOut, Crown, ShieldCheck } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -15,6 +15,7 @@ import {
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS8ZAxsN3ZCSa2VxpmMNpCPDjEubNVYJKkier6mZ_3NYnOr-of5F3HqDBgOXAL3XbzDE9T4yWv4pk0c/pubhtml";
 
 const DEFAULT_ANNOUNCEMENT = "ยินดีต้อนรับสู่ร้านค้าของเรา! 🎉 สินค้าใหม่อัปเดตทุกวัน";
+const ANNOUNCEMENT_KEY = "shop_announcement";
 
 
 const Index = () => {
@@ -28,7 +29,7 @@ const Index = () => {
   const [search, setSearch] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [announcement, setAnnouncement] = useState(DEFAULT_ANNOUNCEMENT);
+  const [announcement, setAnnouncement] = useState(() => localStorage.getItem(ANNOUNCEMENT_KEY) || DEFAULT_ANNOUNCEMENT);
   const [editingAnnouncement, setEditingAnnouncement] = useState(false);
   const [showAnnouncement, setShowAnnouncement] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
@@ -104,9 +105,10 @@ const Index = () => {
             {/* VVIP Login */}
             {session ? (
               <div className="flex items-center gap-1.5">
-                <span className="hidden sm:flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
-                  <Crown className="h-3 w-3" />
-                  {session.id}
+                <span className="flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 text-xs font-bold text-amber-600">
+                  <Crown className="h-4 w-4" />
+                  <span className="hidden sm:inline">{session.id}</span>
+                  <span className="sm:hidden">VVIP</span>
                 </span>
                 <button
                   onClick={logout}
@@ -119,10 +121,11 @@ const Index = () => {
             ) : (
               <button
                 onClick={() => setShowLogin(true)}
-                className="rounded-lg border border-border p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                className="flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
                 title="เข้าสู่ระบบ VVIP"
               >
-                <LogIn className="h-4 w-4" />
+                <ShieldCheck className="h-4 w-4" />
+                <span className="hidden sm:inline">VVIP</span>
               </button>
             )}
 
@@ -167,8 +170,8 @@ const Index = () => {
                 type="text"
                 value={announcement}
                 onChange={(e) => setAnnouncement(e.target.value)}
-                onBlur={() => setEditingAnnouncement(false)}
-                onKeyDown={(e) => e.key === "Enter" && setEditingAnnouncement(false)}
+                onBlur={() => { setEditingAnnouncement(false); localStorage.setItem(ANNOUNCEMENT_KEY, announcement); }}
+                onKeyDown={(e) => { if (e.key === "Enter") { setEditingAnnouncement(false); localStorage.setItem(ANNOUNCEMENT_KEY, announcement); } }}
                 className="flex-1 bg-transparent text-sm text-foreground border-b border-primary/30 focus:outline-none focus:border-primary py-0.5"
               />
             ) : (
@@ -220,6 +223,7 @@ const Index = () => {
                 key={product.id}
                 product={product}
                 onClick={() => setSelectedProduct(product)}
+                canSeeVVIP={canSeeVVIP}
               />
             ))}
           </div>
