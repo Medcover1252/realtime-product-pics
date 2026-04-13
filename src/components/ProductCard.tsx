@@ -3,11 +3,15 @@ import type { Product } from "@/hooks/useGoogleSheet";
 interface Props {
   product: Product;
   onClick: () => void;
+  canSeeVVIP?: boolean;
 }
 
-const ProductCard = ({ product, onClick }: Props) => {
+const ProductCard = ({ product, onClick, canSeeVVIP = false }: Props) => {
   const formattedPrice = product.price
     ? `฿${Number(product.price).toLocaleString()}`
+    : "";
+  const formattedVVIP = product.priceVVIP
+    ? `฿${Number(product.priceVVIP).toLocaleString()}`
     : "";
 
   const imgSrc = product.imageUrl || "";
@@ -44,9 +48,16 @@ const ProductCard = ({ product, onClick }: Props) => {
           <p className="text-muted-foreground text-xs">{product.category}</p>
         )}
         <div className="flex items-end justify-between gap-2">
-          {formattedPrice && (
-            <p className="font-bold text-primary text-lg">{formattedPrice}</p>
-          )}
+          <div className="space-y-0.5">
+            {formattedPrice && (
+              <p className="font-bold text-primary text-lg">{formattedPrice}</p>
+            )}
+            {canSeeVVIP && formattedVVIP && (
+              <p className="text-xs font-semibold text-amber-600">
+                VVIP {formattedVVIP}
+              </p>
+            )}
+          </div>
           {product.quantity && (
             <p className="text-right font-extrabold text-foreground text-xl tracking-tight leading-none">
               {product.quantity}
