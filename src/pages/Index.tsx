@@ -1,11 +1,12 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useGoogleSheet, type Product } from "@/hooks/useGoogleSheet";
 import { useCustomerAuth } from "@/hooks/useCustomerAuth";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import ProductCard from "@/components/ProductCard";
 import ProductDetail from "@/components/ProductDetail";
 import CategoryFilter, { type FilterKey } from "@/components/CategoryFilter";
 import VVIPLoginDialog from "@/components/VVIPLoginDialog";
-import { RefreshCw, Search, SlidersHorizontal, Megaphone, X, LogIn, LogOut, Crown, ShieldCheck } from "lucide-react";
+import { RefreshCw, Search, SlidersHorizontal, Megaphone, X, LogIn, LogOut, Crown, ShieldCheck, ArrowDownCircle } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -34,6 +35,14 @@ const Index = () => {
   const [showAnnouncement, setShowAnnouncement] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
 
+  const handlePullRefresh = useCallback(async () => {
+    await refresh();
+  }, [refresh]);
+
+  const { containerRef, pullDistance, refreshing: pullRefreshing, threshold: pullThreshold } = usePullToRefresh({
+    onRefresh: handlePullRefresh,
+  });
+
   const activeFilterCount = Object.values(activeFilters).filter(Boolean).length;
 
   const filtered = useMemo(() => {
@@ -61,7 +70,21 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div ref={containerRef} className="min-h-screen bg-background">
+      {/* Pull-to-refresh indicator (mobile) */}
+      {(pullDistance > 0 || pullRefreshing) && (
+        <div
+          className="flex items-center justify-center overflow-hidden transition-all duration-200 sm:hidden"
+          style={{ height: pullRefreshing ? 48 : pullDistance * 0.6 }}
+        >
+          <div className={`flex items-center gap-2 text-sm text-primary ${pullRefreshing ? "animate-pulse" : ""}`}>
+            <ArrowDownCircle
+              className={`h-5 w-5 transition-transform duration-200 ${pullDistance >= pullThreshold ? "rotate-180" : ""} ${pullRefreshing ? "animate-spin" : ""}`}
+            />
+            <span>{pullRefreshing ? "กำลังโหลด..." : pullDistance >= pullThreshold ? "ปล่อยเพื่อรีเฟรช" : "ดึงลงเพื่อรีเฟรช"}</span>
+          </div>
+        </div>
+      )}
       <header className="sticky top-0 z-10 border-b border-border bg-card/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
           <h1 className="text-xl font-bold text-foreground sm:text-2xl">
