@@ -19,7 +19,7 @@ const ProductCard = ({ product, onClick, canSeeVVIP = false }: Props) => {
   return (
     <div
       onClick={onClick}
-      className="group cursor-pointer rounded-lg border border-border bg-card overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300"
+      className="group cursor-pointer rounded-lg border border-border/60 glass-card overflow-hidden shadow-[0_2px_16px_-4px_hsl(var(--primary)/0.10)] hover:shadow-[0_8px_30px_-6px_hsl(var(--primary)/0.18)] transition-all duration-300 hover:-translate-y-0.5"
     >
       <div className="aspect-square overflow-hidden bg-muted">
         {imgSrc ? (
