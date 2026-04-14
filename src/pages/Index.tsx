@@ -5,6 +5,7 @@ import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import ProductCard from "@/components/ProductCard";
 import ProductDetail from "@/components/ProductDetail";
 import CategoryFilter, { type FilterKey } from "@/components/CategoryFilter";
+import SortControls, { type SortOption } from "@/components/SortControls";
 import VVIPLoginDialog from "@/components/VVIPLoginDialog";
 import { RefreshCw, Search, SlidersHorizontal, Megaphone, X, LogIn, LogOut, Crown, ShieldCheck, ArrowDownCircle } from "lucide-react";
 import {
@@ -34,6 +35,7 @@ const Index = () => {
   const [editingAnnouncement, setEditingAnnouncement] = useState(false);
   const [showAnnouncement, setShowAnnouncement] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
+  const [sort, setSort] = useState<SortOption>("");
 
   const handlePullRefresh = useCallback(async () => {
     await refresh();
@@ -46,7 +48,7 @@ const Index = () => {
   const activeFilterCount = Object.values(activeFilters).filter(Boolean).length;
 
   const filtered = useMemo(() => {
-    return products.filter((p) => {
+    const list = products.filter((p) => {
       if (activeFilters.brand && p.brand !== activeFilters.brand) return false;
       if (activeFilters.category && p.category !== activeFilters.category) return false;
       if (activeFilters.serie && p.serie !== activeFilters.serie) return false;
@@ -57,7 +59,12 @@ const Index = () => {
       }
       return true;
     });
-  }, [products, activeFilters, search]);
+    if (sort === "price-asc") list.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
+    else if (sort === "price-desc") list.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
+    else if (sort === "qty-desc") list.sort((a, b) => (Number(b.quantity) || 0) - (Number(a.quantity) || 0));
+    else if (sort === "qty-asc") list.sort((a, b) => (Number(a.quantity) || 0) - (Number(b.quantity) || 0));
+    return list;
+  }, [products, activeFilters, search, sort]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -85,28 +92,28 @@ const Index = () => {
           </div>
         </div>
       )}
-      <header className="sticky top-0 z-10 border-b border-border bg-card/80 backdrop-blur-md">
+      <header className="sticky top-0 z-10 border-b border-white/10 bg-gradient-to-r from-gray-950 via-gray-900 to-gray-950 backdrop-blur-md shadow-lg">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-          <h1 className="text-xl font-bold text-foreground sm:text-2xl">
-            📦 รายการสินค้า
+          <h1 className="text-xl font-bold text-white sm:text-2xl tracking-tight">
+            ✨ รายการสินค้า
           </h1>
           <div className="flex items-center gap-2">
             {/* Search */}
             <div className="relative hidden sm:block">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
                 type="text"
                 placeholder="ค้นหาสินค้า..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-48 lg:w-64 rounded-lg border border-border bg-background pl-9 pr-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                className="w-48 lg:w-64 rounded-lg border border-white/15 bg-white/10 pl-9 pr-3 py-2 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
             </div>
 
             {/* Filter popover */}
             <Popover>
               <PopoverTrigger asChild>
-                <button className="relative rounded-lg border border-border p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                <button className="relative rounded-lg border border-white/15 p-2 text-gray-300 transition-colors hover:bg-white/10 hover:text-white">
                   <SlidersHorizontal className="h-4 w-4" />
                   {activeFilterCount > 0 && (
                     <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
@@ -128,14 +135,14 @@ const Index = () => {
             {/* VVIP Login */}
             {session ? (
               <div className="flex items-center gap-1.5">
-                <span className="flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 text-xs font-bold text-amber-600">
+                <span className="flex items-center gap-1 rounded-full bg-amber-500/20 border border-amber-500/40 px-3 py-1.5 text-xs font-bold text-amber-400">
                   <Crown className="h-4 w-4" />
                   <span className="hidden sm:inline">{session.id}</span>
                   <span className="sm:hidden">VVIP</span>
                 </span>
                 <button
                   onClick={logout}
-                  className="rounded-lg border border-border p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                  className="rounded-lg border border-white/15 p-2 text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
                   title="ออกจากระบบ"
                 >
                   <LogOut className="h-4 w-4" />
@@ -144,7 +151,7 @@ const Index = () => {
             ) : (
               <button
                 onClick={() => setShowLogin(true)}
-                className="flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
+                className="flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/15 px-3 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/25"
                 title="เข้าสู่ระบบ VVIP"
               >
                 <ShieldCheck className="h-4 w-4" />
@@ -153,13 +160,13 @@ const Index = () => {
             )}
 
             {lastUpdated && (
-              <span className="hidden text-xs text-muted-foreground lg:block">
+              <span className="hidden text-xs text-gray-400 lg:block">
                 {lastUpdated.toLocaleTimeString("th-TH")}
               </span>
             )}
             <button
               onClick={handleRefresh}
-              className="rounded-lg border border-border p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              className="rounded-lg border border-white/15 p-2 text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
               title="รีเฟรช"
             >
               <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
@@ -170,13 +177,13 @@ const Index = () => {
         {/* Mobile search */}
         <div className="mx-auto max-w-7xl px-4 pb-3 sm:hidden">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
               type="text"
               placeholder="ค้นหาสินค้า..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg border border-border bg-background pl-9 pr-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+              className="w-full rounded-lg border border-white/15 bg-white/10 pl-9 pr-3 py-2 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50"
             />
           </div>
         </div>
@@ -216,6 +223,8 @@ const Index = () => {
       )}
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-5">
+        {/* Sort controls */}
+        <SortControls value={sort} onChange={setSort} />
         {error && (
           <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive">
             {error}
