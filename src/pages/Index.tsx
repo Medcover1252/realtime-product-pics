@@ -5,6 +5,7 @@ import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import ProductCard from "@/components/ProductCard";
 import ProductDetail from "@/components/ProductDetail";
 import CategoryFilter, { type FilterKey } from "@/components/CategoryFilter";
+import SortControls, { type SortOption } from "@/components/SortControls";
 import VVIPLoginDialog from "@/components/VVIPLoginDialog";
 import { RefreshCw, Search, SlidersHorizontal, Megaphone, X, LogIn, LogOut, Crown, ShieldCheck, ArrowDownCircle } from "lucide-react";
 import {
@@ -34,6 +35,7 @@ const Index = () => {
   const [editingAnnouncement, setEditingAnnouncement] = useState(false);
   const [showAnnouncement, setShowAnnouncement] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
+  const [sort, setSort] = useState<SortOption>("");
 
   const handlePullRefresh = useCallback(async () => {
     await refresh();
@@ -46,7 +48,7 @@ const Index = () => {
   const activeFilterCount = Object.values(activeFilters).filter(Boolean).length;
 
   const filtered = useMemo(() => {
-    return products.filter((p) => {
+    const list = products.filter((p) => {
       if (activeFilters.brand && p.brand !== activeFilters.brand) return false;
       if (activeFilters.category && p.category !== activeFilters.category) return false;
       if (activeFilters.serie && p.serie !== activeFilters.serie) return false;
@@ -57,7 +59,12 @@ const Index = () => {
       }
       return true;
     });
-  }, [products, activeFilters, search]);
+    if (sort === "price-asc") list.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
+    else if (sort === "price-desc") list.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
+    else if (sort === "qty-desc") list.sort((a, b) => (Number(b.quantity) || 0) - (Number(a.quantity) || 0));
+    else if (sort === "qty-asc") list.sort((a, b) => (Number(a.quantity) || 0) - (Number(b.quantity) || 0));
+    return list;
+  }, [products, activeFilters, search, sort]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -85,10 +92,10 @@ const Index = () => {
           </div>
         </div>
       )}
-      <header className="sticky top-0 z-10 border-b border-border bg-card/80 backdrop-blur-md">
+      <header className="sticky top-0 z-10 border-b border-white/10 bg-gradient-to-r from-gray-950 via-gray-900 to-gray-950 backdrop-blur-md shadow-lg">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-          <h1 className="text-xl font-bold text-foreground sm:text-2xl">
-            📦 รายการสินค้า
+          <h1 className="text-xl font-bold text-white sm:text-2xl tracking-tight">
+            ✨ รายการสินค้า
           </h1>
           <div className="flex items-center gap-2">
             {/* Search */}
@@ -216,6 +223,8 @@ const Index = () => {
       )}
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-5">
+        {/* Sort controls */}
+        <SortControls value={sort} onChange={setSort} />
         {error && (
           <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive">
             {error}
