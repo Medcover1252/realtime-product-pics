@@ -152,10 +152,10 @@ const Index = () => {
               <button
                 onClick={() => setShowLogin(true)}
                 className="flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/15 px-3 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/25"
-                title="เข้าสู่ระบบ VVIP"
+                title="เข้าสู่ระบบ"
               >
-                <ShieldCheck className="h-4 w-4" />
-                <span className="hidden sm:inline">VVIP</span>
+                <LogIn className="h-4 w-4" />
+                <span className="hidden sm:inline">เข้าสู่ระบบ</span>
               </button>
             )}
 
