@@ -23,7 +23,8 @@ const ANNOUNCEMENT_KEY = "shop_announcement";
 
 const Index = () => {
   const { products, loading, error, lastUpdated, refresh } = useGoogleSheet(SHEET_URL);
-  const { session, login, logout, loading: authLoading, error: authError, canSeeVVIP } = useCustomerAuth();
+  const { session, login, logout, loading: authLoading, error: authError, canSeeVVIP, isAdmin } = useCustomerAuth();
+  const { favorites, toggleFavorite, isFavorite } = useFavorites();
   const [activeFilters, setActiveFilters] = useState<Record<FilterKey, string>>({
     brand: "",
     category: "",
