@@ -70,7 +70,7 @@ const VVIPLoginDialog = ({ open, onClose, onLogin, loading, error }: Props) => {
             className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
-            เข้าสู่ระบบ
+            เข้าสู่ระบบตรงนี้
           </button>
         </form>
       </DialogContent>
