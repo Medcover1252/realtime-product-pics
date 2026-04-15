@@ -264,6 +264,9 @@ const Index = () => {
                 product={product}
                 onClick={() => setSelectedProduct(product)}
                 canSeeVVIP={canSeeVVIP}
+                isAdmin={isAdmin}
+                isFavorite={isFavorite(product.id)}
+                onToggleFavorite={toggleFavorite}
               />
             ))}
           </div>
