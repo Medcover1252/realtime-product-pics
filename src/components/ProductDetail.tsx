@@ -27,9 +27,6 @@ const ProductDetail = ({ product, open, onClose, canSeeVVIP = false }: Props) =>
   const details = [
     { label: "บาร์โค้ด", value: product.barcode },
     { label: "บาร์โค้ดกล่อง", value: product.barcodeBox },
-    { label: "Brand", value: product.brand },
-    { label: "หมวด", value: product.category },
-    { label: "Serie รุ่น", value: product.serie },
     { label: "ชื่อเรียก", value: product.nickname },
     { label: "วันหมดอายุ", value: product.expiryDate },
     { label: "จำนวนลัง", value: product.boxCount },

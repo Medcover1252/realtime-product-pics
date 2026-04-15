@@ -44,8 +44,8 @@ const ProductCard = ({ product, onClick, canSeeVVIP = false }: Props) => {
         <h3 className="font-semibold text-card-foreground text-sm leading-tight line-clamp-2">
           {product.combined || product.nickname || product.barcode}
         </h3>
-        {product.category && (
-          <p className="text-muted-foreground text-xs">{product.category}</p>
+        {product.barcode && (
+          <p className="text-muted-foreground text-xs font-mono tracking-wide">{product.barcode}</p>
         )}
         <div className="flex items-end justify-between gap-2">
           <div className="space-y-0.5">
