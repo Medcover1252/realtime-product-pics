@@ -65,8 +65,14 @@ const Index = () => {
     else if (sort === "price-desc") list.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
     else if (sort === "qty-desc") list.sort((a, b) => (Number(b.quantity) || 0) - (Number(a.quantity) || 0));
     else if (sort === "qty-asc") list.sort((a, b) => (Number(a.quantity) || 0) - (Number(b.quantity) || 0));
+    // Sort favorites to top
+    list.sort((a, b) => {
+      const aFav = favorites.has(a.id) ? 1 : 0;
+      const bFav = favorites.has(b.id) ? 1 : 0;
+      return bFav - aFav;
+    });
     return list;
-  }, [products, activeFilters, search, sort]);
+  }, [products, activeFilters, search, sort, favorites]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
