@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from "react";
 import { useGoogleSheet, type Product } from "@/hooks/useGoogleSheet";
 import { useCustomerAuth } from "@/hooks/useCustomerAuth";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { useFavorites } from "@/hooks/useFavorites";
 import ProductCard from "@/components/ProductCard";
 import ProductDetail from "@/components/ProductDetail";
 import CategoryFilter, { type FilterKey } from "@/components/CategoryFilter";
@@ -22,7 +23,8 @@ const ANNOUNCEMENT_KEY = "shop_announcement";
 
 const Index = () => {
   const { products, loading, error, lastUpdated, refresh } = useGoogleSheet(SHEET_URL);
-  const { session, login, logout, loading: authLoading, error: authError, canSeeVVIP } = useCustomerAuth();
+  const { session, login, logout, loading: authLoading, error: authError, canSeeVVIP, isAdmin } = useCustomerAuth();
+  const { favorites, toggleFavorite, isFavorite } = useFavorites();
   const [activeFilters, setActiveFilters] = useState<Record<FilterKey, string>>({
     brand: "",
     category: "",
@@ -63,8 +65,14 @@ const Index = () => {
     else if (sort === "price-desc") list.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
     else if (sort === "qty-desc") list.sort((a, b) => (Number(b.quantity) || 0) - (Number(a.quantity) || 0));
     else if (sort === "qty-asc") list.sort((a, b) => (Number(a.quantity) || 0) - (Number(b.quantity) || 0));
+    // Sort favorites to top
+    list.sort((a, b) => {
+      const aFav = favorites.has(a.id) ? 1 : 0;
+      const bFav = favorites.has(b.id) ? 1 : 0;
+      return bFav - aFav;
+    });
     return list;
-  }, [products, activeFilters, search, sort]);
+  }, [products, activeFilters, search, sort, favorites]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -256,6 +264,9 @@ const Index = () => {
                 product={product}
                 onClick={() => setSelectedProduct(product)}
                 canSeeVVIP={canSeeVVIP}
+                isAdmin={isAdmin}
+                isFavorite={isFavorite(product.id)}
+                onToggleFavorite={toggleFavorite}
               />
             ))}
           </div>

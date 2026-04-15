@@ -85,7 +85,8 @@ export function useCustomerAuth() {
     setSession(null);
   }, []);
 
-  const canSeeVVIP = session?.status === "ผู้เข้าถึงทั้งหมด";
+  const isAdmin = session?.status === "ผู้ดูแล";
+  const canSeeVVIP = session?.status === "ผู้เข้าถึงทั้งหมด" || isAdmin;
 
-  return { session, login, logout, loading, error, canSeeVVIP };
+  return { session, login, logout, loading, error, canSeeVVIP, isAdmin };
 }

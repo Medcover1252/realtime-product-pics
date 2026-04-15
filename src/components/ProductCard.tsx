@@ -1,12 +1,23 @@
+import { Heart } from "lucide-react";
 import type { Product } from "@/hooks/useGoogleSheet";
 
 interface Props {
   product: Product;
   onClick: () => void;
   canSeeVVIP?: boolean;
+  isAdmin?: boolean;
+  isFavorite?: boolean;
+  onToggleFavorite?: (id: string) => void;
 }
 
-const ProductCard = ({ product, onClick, canSeeVVIP = false }: Props) => {
+const ProductCard = ({
+  product,
+  onClick,
+  canSeeVVIP = false,
+  isAdmin = false,
+  isFavorite = false,
+  onToggleFavorite,
+}: Props) => {
   const formattedPrice = product.price
     ? `฿${Number(product.price).toLocaleString()}`
     : "";
@@ -19,8 +30,28 @@ const ProductCard = ({ product, onClick, canSeeVVIP = false }: Props) => {
   return (
     <div
       onClick={onClick}
-      className="group cursor-pointer rounded-lg border border-border/60 glass-card overflow-hidden shadow-[0_2px_16px_-4px_hsl(var(--primary)/0.10)] hover:shadow-[0_8px_30px_-6px_hsl(var(--primary)/0.18)] transition-all duration-300 hover:-translate-y-0.5"
+      className="group relative cursor-pointer rounded-lg border border-border/60 glass-card overflow-hidden shadow-[0_2px_16px_-4px_hsl(var(--primary)/0.10)] hover:shadow-[0_8px_30px_-6px_hsl(var(--primary)/0.18)] transition-all duration-300 hover:-translate-y-0.5"
     >
+      {/* Favorite button — admin only */}
+      {isAdmin && onToggleFavorite && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleFavorite(product.id);
+          }}
+          className={`absolute top-2 right-2 z-[2] rounded-full p-1.5 backdrop-blur-md transition-all duration-200 ${
+            isFavorite
+              ? "bg-rose-500/90 text-white shadow-lg shadow-rose-500/30 scale-110"
+              : "bg-black/40 text-white/70 hover:bg-black/60 hover:text-white"
+          }`}
+          title={isFavorite ? "เอาออกจากรายการโปรด" : "เพิ่มในรายการโปรด"}
+        >
+          <Heart
+            className={`h-4 w-4 transition-transform duration-200 ${isFavorite ? "fill-current" : ""}`}
+          />
+        </button>
+      )}
+
       <div className="aspect-square overflow-hidden bg-muted">
         {imgSrc ? (
           <img
