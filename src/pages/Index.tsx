@@ -95,7 +95,7 @@ const Index = () => {
       <header className="sticky top-0 z-10 border-b border-white/10 bg-gradient-to-r from-gray-950 via-gray-900 to-gray-950 backdrop-blur-md shadow-lg">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
           <h1 className="text-xl font-bold text-white sm:text-2xl tracking-tight">
-            ✨ รายการสินค้า
+            ✨ รายการสินค้า Updated
           </h1>
           <div className="flex items-center gap-2">
             {/* Search */}
