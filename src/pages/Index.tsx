@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from "react";
 import { useGoogleSheet, type Product } from "@/hooks/useGoogleSheet";
 import { useCustomerAuth } from "@/hooks/useCustomerAuth";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { useFavorites } from "@/hooks/useFavorites";
 import ProductCard from "@/components/ProductCard";
 import ProductDetail from "@/components/ProductDetail";
 import CategoryFilter, { type FilterKey } from "@/components/CategoryFilter";
