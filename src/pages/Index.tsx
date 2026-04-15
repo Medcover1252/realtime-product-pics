@@ -106,7 +106,7 @@ const Index = () => {
                 placeholder="ค้นหาสินค้า..แบรนด์/ประเภทได้เล๊ยย.."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-48 lg:w-64 rounded-lg border border-white/15 bg-white/10 pl-9 pr-3 py-2 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                className="w-80 lg:w-64 rounded-lg border border-white/15 bg-white/10 pl-9 pr-3 py-2 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
             </div>
 
