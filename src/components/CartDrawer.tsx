@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Minus, Plus, Trash2, FileText } from "lucide-react";
+import { Minus, Plus, Trash2, FileText, Crown, Pencil, Check } from "lucide-react";
 import type { CartItem } from "@/hooks/useCart";
 
 interface Props {
@@ -14,6 +15,13 @@ interface Props {
   onRemoveItem: (productId: string) => void;
   totalAmount: number;
   onGenerateOrder: () => void;
+  canSeeVVIP?: boolean;
+  useVVIPPrice?: boolean;
+  onToggleVVIPPrice?: (v: boolean) => void;
+  customPrices?: Record<string, number>;
+  onUpdateCustomPrice?: (productId: string, price: number) => void;
+  onClearCustomPrice?: (productId: string) => void;
+  getItemPrice?: (item: CartItem) => number;
 }
 
 const CartDrawer = ({
@@ -26,7 +34,30 @@ const CartDrawer = ({
   onRemoveItem,
   totalAmount,
   onGenerateOrder,
+  canSeeVVIP,
+  useVVIPPrice,
+  onToggleVVIPPrice,
+  customPrices = {},
+  onUpdateCustomPrice,
+  onClearCustomPrice,
+  getItemPrice,
 }: Props) => {
+  const [editingPriceId, setEditingPriceId] = useState<string | null>(null);
+  const [editPriceValue, setEditPriceValue] = useState("");
+
+  const startEditPrice = (productId: string, currentPrice: number) => {
+    setEditingPriceId(productId);
+    setEditPriceValue(String(currentPrice));
+  };
+
+  const confirmEditPrice = (productId: string) => {
+    const val = Number(editPriceValue);
+    if (!isNaN(val) && val >= 0 && onUpdateCustomPrice) {
+      onUpdateCustomPrice(productId, val);
+    }
+    setEditingPriceId(null);
+  };
+
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
       <SheetContent className="flex flex-col w-full sm:max-w-md">
@@ -45,12 +76,35 @@ const CartDrawer = ({
             />
           </div>
 
+          {/* VVIP price toggle */}
+          {canSeeVVIP && onToggleVVIPPrice && (
+            <button
+              onClick={() => onToggleVVIPPrice(!useVVIPPrice)}
+              className={`flex items-center gap-2 w-full rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                useVVIPPrice
+                  ? "border-amber-500/50 bg-amber-500/15 text-amber-600"
+                  : "border-border bg-card text-muted-foreground hover:bg-muted"
+              }`}
+            >
+              <Crown className="h-4 w-4" />
+              <span>คำนวณราคา VVIP</span>
+              <span className={`ml-auto text-xs rounded-full px-2 py-0.5 ${
+                useVVIPPrice ? "bg-amber-500/20 text-amber-600" : "bg-muted text-muted-foreground"
+              }`}>
+                {useVVIPPrice ? "เปิด" : "ปิด"}
+              </span>
+            </button>
+          )}
+
           {items.length === 0 ? (
             <p className="text-center text-muted-foreground text-sm py-8">ยังไม่มีสินค้าในตะกร้า</p>
           ) : (
             <div className="space-y-3">
               {items.map((item) => {
-                const unitPrice = Number(item.product.price) || 0;
+                const unitPrice = getItemPrice ? getItemPrice(item) : (Number(item.product.price) || 0);
+                const hasCustomPrice = customPrices[item.product.id] !== undefined;
+                const isEditing = editingPriceId === item.product.id;
+
                 return (
                   <div
                     key={item.product.id}
@@ -68,9 +122,53 @@ const CartDrawer = ({
                         {item.product.combined || item.product.nickname || item.product.barcode}
                       </p>
                       <p className="text-xs text-muted-foreground font-mono">{item.product.barcode}</p>
-                      <p className="text-sm font-bold text-primary">
-                        ฿{unitPrice.toLocaleString()} × {item.quantity} = ฿{(unitPrice * item.quantity).toLocaleString()}
-                      </p>
+
+                      {/* Price display / edit */}
+                      <div className="flex items-center gap-1">
+                        {isEditing ? (
+                          <div className="flex items-center gap-1">
+                            <span className="text-sm text-muted-foreground">฿</span>
+                            <input
+                              autoFocus
+                              type="number"
+                              value={editPriceValue}
+                              onChange={(e) => setEditPriceValue(e.target.value)}
+                              onKeyDown={(e) => { if (e.key === "Enter") confirmEditPrice(item.product.id); }}
+                              className="w-20 rounded border border-primary/30 bg-background px-1.5 py-0.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                            />
+                            <button
+                              onClick={() => confirmEditPrice(item.product.id)}
+                              className="rounded-full p-0.5 text-primary hover:bg-primary/10"
+                            >
+                              <Check className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <p className={`text-sm font-bold ${hasCustomPrice ? "text-orange-500" : useVVIPPrice ? "text-amber-500" : "text-primary"}`}>
+                              ฿{unitPrice.toLocaleString()} × {item.quantity} = ฿{(unitPrice * item.quantity).toLocaleString()}
+                            </p>
+                            {canSeeVVIP && (
+                              <button
+                                onClick={() => startEditPrice(item.product.id, unitPrice)}
+                                className="rounded-full p-0.5 text-muted-foreground hover:text-foreground hover:bg-muted"
+                                title="แก้ไขราคา"
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </button>
+                            )}
+                          </>
+                        )}
+                      </div>
+                      {hasCustomPrice && (
+                        <button
+                          onClick={() => onClearCustomPrice?.(item.product.id)}
+                          className="text-[10px] text-orange-500 hover:underline"
+                        >
+                          รีเซ็ตราคา
+                        </button>
+                      )}
+
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => onUpdateQuantity(item.product.id, item.quantity - 1)}
