@@ -334,6 +334,7 @@ const Index = () => {
         customerName={cart.customerName}
         totalAmount={cart.totalAmount}
         onClearCart={cart.clearCart}
+        getItemPrice={cart.getItemPrice}
       />
 
       <VVIPLoginDialog
