@@ -304,6 +304,30 @@ const Index = () => {
         canSeeVVIP={canSeeVVIP}
       />
 
+      <CartDrawer
+        open={showCart}
+        onClose={() => setShowCart(false)}
+        items={cart.items}
+        customerName={cart.customerName}
+        onCustomerNameChange={cart.setCustomerName}
+        onUpdateQuantity={cart.updateQuantity}
+        onRemoveItem={cart.removeItem}
+        totalAmount={cart.totalAmount}
+        onGenerateOrder={() => {
+          setShowCart(false);
+          setShowOrder(true);
+        }}
+      />
+
+      <OrderSummary
+        open={showOrder}
+        onClose={() => setShowOrder(false)}
+        items={cart.items}
+        customerName={cart.customerName}
+        totalAmount={cart.totalAmount}
+        onClearCart={cart.clearCart}
+      />
+
       <VVIPLoginDialog
         open={showLogin}
         onClose={() => setShowLogin(false)}
