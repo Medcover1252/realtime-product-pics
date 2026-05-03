@@ -3,12 +3,15 @@ import { useGoogleSheet, type Product } from "@/hooks/useGoogleSheet";
 import { useCustomerAuth } from "@/hooks/useCustomerAuth";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useCart } from "@/hooks/useCart";
 import ProductCard from "@/components/ProductCard";
 import ProductDetail from "@/components/ProductDetail";
+import CartDrawer from "@/components/CartDrawer";
+import OrderSummary from "@/components/OrderSummary";
 import CategoryFilter, { type FilterKey } from "@/components/CategoryFilter";
 import SortControls, { type SortOption } from "@/components/SortControls";
 import VVIPLoginDialog from "@/components/VVIPLoginDialog";
-import { RefreshCw, Search, SlidersHorizontal, Megaphone, X, LogIn, LogOut, Crown, ShieldCheck, ArrowDownCircle } from "lucide-react";
+import { RefreshCw, Search, SlidersHorizontal, Megaphone, X, LogIn, LogOut, Crown, ShieldCheck, ArrowDownCircle, ShoppingCart } from "lucide-react";
 import {
   Popover,
   PopoverContent,
