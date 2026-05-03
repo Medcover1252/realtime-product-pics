@@ -88,7 +88,7 @@ const OrderSummary = ({ open, onClose, items, customerName, totalAmount, onClear
             </thead>
             <tbody>
               {items.map((item, idx) => {
-                const unitPrice = Number(item.product.price) || 0;
+                const unitPrice = getItemPrice ? getItemPrice(item) : (Number(item.product.price) || 0);
                 const lineTotal = unitPrice * item.quantity;
                 return (
                   <tr key={item.product.id} className="border-b border-gray-200">
