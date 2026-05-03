@@ -287,6 +287,7 @@ const Index = () => {
                 isAdmin={isAdmin}
                 isFavorite={isFavorite(product.id)}
                 onToggleFavorite={toggleFavorite}
+                onAddToCart={() => cart.addItem(product)}
               />
             ))}
           </div>
