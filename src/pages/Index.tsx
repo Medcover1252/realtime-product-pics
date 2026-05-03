@@ -3,12 +3,15 @@ import { useGoogleSheet, type Product } from "@/hooks/useGoogleSheet";
 import { useCustomerAuth } from "@/hooks/useCustomerAuth";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useCart } from "@/hooks/useCart";
 import ProductCard from "@/components/ProductCard";
 import ProductDetail from "@/components/ProductDetail";
+import CartDrawer from "@/components/CartDrawer";
+import OrderSummary from "@/components/OrderSummary";
 import CategoryFilter, { type FilterKey } from "@/components/CategoryFilter";
 import SortControls, { type SortOption } from "@/components/SortControls";
 import VVIPLoginDialog from "@/components/VVIPLoginDialog";
-import { RefreshCw, Search, SlidersHorizontal, Megaphone, X, LogIn, LogOut, Crown, ShieldCheck, ArrowDownCircle } from "lucide-react";
+import { RefreshCw, Search, SlidersHorizontal, Megaphone, X, LogIn, LogOut, Crown, ShieldCheck, ArrowDownCircle, ShoppingCart } from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -25,6 +28,7 @@ const Index = () => {
   const { products, loading, error, lastUpdated, refresh } = useGoogleSheet(SHEET_URL);
   const { session, login, logout, loading: authLoading, error: authError, canSeeVVIP, isAdmin } = useCustomerAuth();
   const { favorites, toggleFavorite, isFavorite } = useFavorites();
+  const cart = useCart();
   const [activeFilters, setActiveFilters] = useState<Record<FilterKey, string>>({
     brand: "",
     category: "",
@@ -38,6 +42,8 @@ const Index = () => {
   const [showAnnouncement, setShowAnnouncement] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
   const [sort, setSort] = useState<SortOption>("");
+  const [showCart, setShowCart] = useState(false);
+  const [showOrder, setShowOrder] = useState(false);
 
   const handlePullRefresh = useCallback(async () => {
     await refresh();
@@ -139,6 +145,20 @@ const Index = () => {
                 />
               </PopoverContent>
             </Popover>
+
+            {/* Cart button */}
+            <button
+              onClick={() => setShowCart(true)}
+              className="relative rounded-lg border border-white/15 p-2 text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
+              title="ตะกร้าสินค้า"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              {cart.totalItems > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white">
+                  {cart.totalItems}
+                </span>
+              )}
+            </button>
 
             {/* VVIP Login */}
             {session ? (
@@ -267,6 +287,7 @@ const Index = () => {
                 isAdmin={isAdmin}
                 isFavorite={isFavorite(product.id)}
                 onToggleFavorite={toggleFavorite}
+                onAddToCart={() => cart.addItem(product)}
               />
             ))}
           </div>
@@ -282,6 +303,30 @@ const Index = () => {
         open={!!selectedProduct}
         onClose={() => setSelectedProduct(null)}
         canSeeVVIP={canSeeVVIP}
+      />
+
+      <CartDrawer
+        open={showCart}
+        onClose={() => setShowCart(false)}
+        items={cart.items}
+        customerName={cart.customerName}
+        onCustomerNameChange={cart.setCustomerName}
+        onUpdateQuantity={cart.updateQuantity}
+        onRemoveItem={cart.removeItem}
+        totalAmount={cart.totalAmount}
+        onGenerateOrder={() => {
+          setShowCart(false);
+          setShowOrder(true);
+        }}
+      />
+
+      <OrderSummary
+        open={showOrder}
+        onClose={() => setShowOrder(false)}
+        items={cart.items}
+        customerName={cart.customerName}
+        totalAmount={cart.totalAmount}
+        onClearCart={cart.clearCart}
       />
 
       <VVIPLoginDialog

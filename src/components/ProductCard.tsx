@@ -1,4 +1,4 @@
-import { Heart } from "lucide-react";
+import { Heart, ShoppingCart } from "lucide-react";
 import type { Product } from "@/hooks/useGoogleSheet";
 
 interface Props {
@@ -8,6 +8,7 @@ interface Props {
   isAdmin?: boolean;
   isFavorite?: boolean;
   onToggleFavorite?: (id: string) => void;
+  onAddToCart?: () => void;
 }
 
 const ProductCard = ({
@@ -17,6 +18,7 @@ const ProductCard = ({
   isAdmin = false,
   isFavorite = false,
   onToggleFavorite,
+  onAddToCart,
 }: Props) => {
   const formattedPrice = product.price
     ? `฿${Number(product.price).toLocaleString()}`
@@ -96,6 +98,18 @@ const ProductCard = ({
             </p>
           )}
         </div>
+        {onAddToCart && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onAddToCart();
+            }}
+            className="w-full mt-2 flex items-center justify-center gap-1.5 rounded-md bg-primary/10 hover:bg-primary/20 text-primary py-1.5 text-xs font-semibold transition-colors"
+          >
+            <ShoppingCart className="h-3.5 w-3.5" />
+            เพิ่มลงตะกร้า
+          </button>
+        )}
       </div>
     </div>
   );
