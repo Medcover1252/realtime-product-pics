@@ -13,9 +13,10 @@ interface Props {
   customerName: string;
   totalAmount: number;
   onClearCart: () => void;
+  getItemPrice?: (item: CartItem) => number;
 }
 
-const OrderSummary = ({ open, onClose, items, customerName, totalAmount, onClearCart }: Props) => {
+const OrderSummary = ({ open, onClose, items, customerName, totalAmount, onClearCart, getItemPrice }: Props) => {
   const printRef = useRef<HTMLDivElement>(null);
   const orderDate = new Date().toLocaleDateString("th-TH", {
     year: "numeric",
