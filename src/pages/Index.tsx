@@ -28,6 +28,7 @@ const Index = () => {
   const { products, loading, error, lastUpdated, refresh } = useGoogleSheet(SHEET_URL);
   const { session, login, logout, loading: authLoading, error: authError, canSeeVVIP, isAdmin } = useCustomerAuth();
   const { favorites, toggleFavorite, isFavorite } = useFavorites();
+  const cart = useCart();
   const [activeFilters, setActiveFilters] = useState<Record<FilterKey, string>>({
     brand: "",
     category: "",
@@ -41,6 +42,8 @@ const Index = () => {
   const [showAnnouncement, setShowAnnouncement] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
   const [sort, setSort] = useState<SortOption>("");
+  const [showCart, setShowCart] = useState(false);
+  const [showOrder, setShowOrder] = useState(false);
 
   const handlePullRefresh = useCallback(async () => {
     await refresh();
