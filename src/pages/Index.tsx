@@ -146,6 +146,20 @@ const Index = () => {
               </PopoverContent>
             </Popover>
 
+            {/* Cart button */}
+            <button
+              onClick={() => setShowCart(true)}
+              className="relative rounded-lg border border-white/15 p-2 text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
+              title="ตะกร้าสินค้า"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              {cart.totalItems > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white">
+                  {cart.totalItems}
+                </span>
+              )}
+            </button>
+
             {/* VVIP Login */}
             {session ? (
               <div className="flex items-center gap-1.5">
