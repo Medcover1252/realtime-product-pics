@@ -318,6 +318,13 @@ const Index = () => {
           setShowCart(false);
           setShowOrder(true);
         }}
+        canSeeVVIP={canSeeVVIP}
+        useVVIPPrice={cart.useVVIPPrice}
+        onToggleVVIPPrice={cart.setUseVVIPPrice}
+        customPrices={cart.customPrices}
+        onUpdateCustomPrice={cart.updateCustomPrice}
+        onClearCustomPrice={cart.clearCustomPrice}
+        getItemPrice={cart.getItemPrice}
       />
 
       <OrderSummary
