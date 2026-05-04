@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Download, Image as ImageIcon, Loader2 } from "lucide-react";
@@ -16,9 +16,46 @@ interface Props {
   getItemPrice?: (item: CartItem) => number;
 }
 
+// Convert image URL to base64 to avoid CORS issues with html2canvas
+const toBase64 = (url: string): Promise<string> =>
+  new Promise((resolve) => {
+    const img = new window.Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      const c = document.createElement("canvas");
+      c.width = img.naturalWidth;
+      c.height = img.naturalHeight;
+      c.getContext("2d")!.drawImage(img, 0, 0);
+      resolve(c.toDataURL("image/jpeg", 0.7));
+    };
+    img.onerror = () => resolve("");
+    img.src = url;
+  });
+
 const OrderSummary = ({ open, onClose, items, customerName, totalAmount, onClearCart, getItemPrice }: Props) => {
   const printRef = useRef<HTMLDivElement>(null);
   const [saving, setSaving] = useState<"pdf" | "png" | null>(null);
+  const [imageCache, setImageCache] = useState<Record<string, string>>({});
+
+  // Pre-convert all product images to base64 when dialog opens
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    const convert = async () => {
+      const cache: Record<string, string> = {};
+      await Promise.all(
+        items.map(async (item) => {
+          if (item.product.imageUrl) {
+            cache[item.product.id] = await toBase64(item.product.imageUrl);
+          }
+        })
+      );
+      if (!cancelled) setImageCache(cache);
+    };
+    convert();
+    return () => { cancelled = true; };
+  }, [open, items]);
+
   const orderDate = new Date().toLocaleDateString("th-TH", {
     year: "numeric",
     month: "long",
@@ -30,10 +67,10 @@ const OrderSummary = ({ open, onClose, items, customerName, totalAmount, onClear
   const captureCanvas = async () => {
     if (!printRef.current) return null;
     return html2canvas(printRef.current, {
-      scale: 2,
+      scale: 1.5,
       useCORS: true,
       backgroundColor: "#ffffff",
-      allowTaint: true,
+      logging: false,
     });
   };
 
@@ -44,12 +81,12 @@ const OrderSummary = ({ open, onClose, items, customerName, totalAmount, onClear
     try {
       const canvas = await captureCanvas();
       if (!canvas) return;
-      const imgData = canvas.toDataURL("image/png");
+      const imgData = canvas.toDataURL("image/jpeg", 0.85);
       const pdf = new jsPDF("p", "mm", "a4");
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      
+      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+
       if (isMobile()) {
         const pdfBlob = pdf.output("blob");
         const url = URL.createObjectURL(pdfBlob);
@@ -74,29 +111,20 @@ const OrderSummary = ({ open, onClose, items, customerName, totalAmount, onClear
     try {
       const canvas = await captureCanvas();
       if (!canvas) return;
-      
+
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
       if (!blob) return;
 
-      // Try native share API on mobile (allows saving to gallery)
       if (isMobile() && navigator.share) {
         try {
           const file = new File([blob], `ใบสั่งซื้อ_${customerName}.png`, { type: "image/png" });
-          await navigator.share({
-            files: [file],
-            title: "ใบสั่งซื้อ",
-            text: `ใบสั่งซื้อ - ${customerName}`,
-          });
+          await navigator.share({ files: [file], title: "ใบสั่งซื้อ", text: `ใบสั่งซื้อ - ${customerName}` });
           return;
-        } catch {
-          // User cancelled or not supported, fall through to download
-        }
+        } catch { /* fall through */ }
       }
 
-      // Fallback: open in new tab on mobile, or download on desktop
       const url = URL.createObjectURL(blob);
       if (isMobile()) {
-        // Open image in new tab so user can long-press to save
         const w = window.open();
         if (w) {
           w.document.write(`
@@ -159,15 +187,15 @@ const OrderSummary = ({ open, onClose, items, customerName, totalAmount, onClear
             {items.map((item, idx) => {
               const unitPrice = getItemPrice ? getItemPrice(item) : (Number(item.product.price) || 0);
               const lineTotal = unitPrice * item.quantity;
+              const imgSrc = imageCache[item.product.id] || item.product.imageUrl;
               return (
                 <div key={item.product.id} className="flex gap-3 border-b border-gray-200 pb-3">
                   <div className="text-xs text-gray-400 pt-1 w-5 shrink-0">{idx + 1}.</div>
-                  {item.product.imageUrl && (
+                  {imgSrc && (
                     <img
-                      src={item.product.imageUrl}
+                      src={imgSrc}
                       alt={item.product.combined}
                       className="h-14 w-14 rounded-md object-cover shrink-0"
-                      crossOrigin="anonymous"
                     />
                   )}
                   <div className="flex-1 min-w-0">
