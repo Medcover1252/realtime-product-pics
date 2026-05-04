@@ -344,6 +344,17 @@ const Index = () => {
         loading={authLoading}
         error={authError}
       />
+
+      {/* Floating cart button */}
+      {cart.items.length > 0 && (
+        <button
+          onClick={() => setShowCart(true)}
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full bg-primary text-primary-foreground shadow-xl px-4 py-3 hover:bg-primary/90 active:scale-95 transition-all"
+        >
+          <ShoppingCart className="h-5 w-5" />
+          <span className="text-sm font-bold">{cart.items.length} รายการ</span>
+        </button>
+      )}
     </div>
   );
 };
