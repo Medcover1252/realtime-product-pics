@@ -1,7 +1,7 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Download, Image as ImageIcon } from "lucide-react";
+import { Download, Image as ImageIcon, Loader2 } from "lucide-react";
 import type { CartItem } from "@/hooks/useCart";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -18,6 +18,7 @@ interface Props {
 
 const OrderSummary = ({ open, onClose, items, customerName, totalAmount, onClearCart, getItemPrice }: Props) => {
   const printRef = useRef<HTMLDivElement>(null);
+  const [saving, setSaving] = useState<"pdf" | "png" | null>(null);
   const orderDate = new Date().toLocaleDateString("th-TH", {
     year: "numeric",
     month: "long",
@@ -32,27 +33,105 @@ const OrderSummary = ({ open, onClose, items, customerName, totalAmount, onClear
       scale: 2,
       useCORS: true,
       backgroundColor: "#ffffff",
+      allowTaint: true,
     });
   };
 
+  const isMobile = () => /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
   const handleSavePDF = async () => {
-    const canvas = await captureCanvas();
-    if (!canvas) return;
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("p", "mm", "a4");
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-    pdf.save(`ใบสั่งซื้อ_${customerName}_${Date.now()}.pdf`);
+    setSaving("pdf");
+    try {
+      const canvas = await captureCanvas();
+      if (!canvas) return;
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      
+      if (isMobile()) {
+        const pdfBlob = pdf.output("blob");
+        const url = URL.createObjectURL(pdfBlob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `ใบสั่งซื้อ_${customerName}_${Date.now()}.pdf`;
+        a.target = "_blank";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+      } else {
+        pdf.save(`ใบสั่งซื้อ_${customerName}_${Date.now()}.pdf`);
+      }
+    } finally {
+      setSaving(null);
+    }
   };
 
   const handleSavePNG = async () => {
-    const canvas = await captureCanvas();
-    if (!canvas) return;
-    const link = document.createElement("a");
-    link.download = `ใบสั่งซื้อ_${customerName}_${Date.now()}.png`;
-    link.href = canvas.toDataURL("image/png");
-    link.click();
+    setSaving("png");
+    try {
+      const canvas = await captureCanvas();
+      if (!canvas) return;
+      
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
+      if (!blob) return;
+
+      // Try native share API on mobile (allows saving to gallery)
+      if (isMobile() && navigator.share) {
+        try {
+          const file = new File([blob], `ใบสั่งซื้อ_${customerName}.png`, { type: "image/png" });
+          await navigator.share({
+            files: [file],
+            title: "ใบสั่งซื้อ",
+            text: `ใบสั่งซื้อ - ${customerName}`,
+          });
+          return;
+        } catch {
+          // User cancelled or not supported, fall through to download
+        }
+      }
+
+      // Fallback: open in new tab on mobile, or download on desktop
+      const url = URL.createObjectURL(blob);
+      if (isMobile()) {
+        // Open image in new tab so user can long-press to save
+        const w = window.open();
+        if (w) {
+          w.document.write(`
+            <html>
+              <head><title>ใบสั่งซื้อ</title><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+              <body style="margin:0;display:flex;justify-content:center;align-items:start;background:#f5f5f5;min-height:100vh">
+                <div style="text-align:center;padding:16px;width:100%">
+                  <p style="font-size:14px;color:#666;margin-bottom:12px">📱 กดค้างที่รูปเพื่อบันทึกลง Gallery</p>
+                  <img src="${url}" style="max-width:100%;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.15)" />
+                </div>
+              </body>
+            </html>
+          `);
+        } else {
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `ใบสั่งซื้อ_${customerName}_${Date.now()}.png`;
+          a.target = "_blank";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }
+        setTimeout(() => URL.revokeObjectURL(url), 30000);
+      } else {
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `ใบสั่งซื้อ_${customerName}_${Date.now()}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+      }
+    } finally {
+      setSaving(null);
+    }
   };
 
   return (
@@ -75,38 +154,38 @@ const OrderSummary = ({ open, onClose, items, customerName, totalAmount, onClear
             </p>
           </div>
 
-          {/* Items table */}
-          <table className="w-full text-sm border-collapse">
-            <thead>
-              <tr className="border-b-2 border-gray-300">
-                <th className="text-left py-2 pr-2">#</th>
-                <th className="text-left py-2 pr-2">สินค้า / บาร์โค้ด</th>
-                <th className="text-right py-2 pr-2">ราคา</th>
-                <th className="text-center py-2 pr-2">จำนวน</th>
-                <th className="text-right py-2">รวม</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item, idx) => {
-                const unitPrice = getItemPrice ? getItemPrice(item) : (Number(item.product.price) || 0);
-                const lineTotal = unitPrice * item.quantity;
-                return (
-                  <tr key={item.product.id} className="border-b border-gray-200">
-                    <td className="py-2 pr-2 text-gray-500">{idx + 1}</td>
-                    <td className="py-2 pr-2">
-                      <p className="font-medium leading-tight">
-                        {item.product.combined || item.product.nickname || item.product.barcode}
-                      </p>
-                      <p className="text-xs text-gray-400 font-mono">{item.product.barcode}</p>
-                    </td>
-                    <td className="py-2 pr-2 text-right whitespace-nowrap">฿{unitPrice.toLocaleString()}</td>
-                    <td className="py-2 pr-2 text-center">{item.quantity}</td>
-                    <td className="py-2 text-right font-semibold whitespace-nowrap">฿{lineTotal.toLocaleString()}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          {/* Items list with images */}
+          <div className="space-y-3">
+            {items.map((item, idx) => {
+              const unitPrice = getItemPrice ? getItemPrice(item) : (Number(item.product.price) || 0);
+              const lineTotal = unitPrice * item.quantity;
+              return (
+                <div key={item.product.id} className="flex gap-3 border-b border-gray-200 pb-3">
+                  <div className="text-xs text-gray-400 pt-1 w-5 shrink-0">{idx + 1}.</div>
+                  {item.product.imageUrl && (
+                    <img
+                      src={item.product.imageUrl}
+                      alt={item.product.combined}
+                      className="h-14 w-14 rounded-md object-cover shrink-0"
+                      crossOrigin="anonymous"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium leading-tight">
+                      {item.product.combined || item.product.nickname || item.product.barcode}
+                    </p>
+                    <p className="text-xs text-gray-400 font-mono mt-0.5">{item.product.barcode}</p>
+                    <div className="flex items-center justify-between mt-1">
+                      <span className="text-xs text-gray-500">
+                        ฿{unitPrice.toLocaleString()} × {item.quantity}
+                      </span>
+                      <span className="text-sm font-bold">฿{lineTotal.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
 
           {/* Total */}
           <div className="border-t-2 border-gray-300 pt-3 flex justify-between items-center">
@@ -117,12 +196,12 @@ const OrderSummary = ({ open, onClose, items, customerName, totalAmount, onClear
 
         {/* Export buttons */}
         <div className="flex gap-3 pt-2">
-          <Button onClick={handleSavePDF} className="flex-1" variant="default">
-            <Download className="h-4 w-4 mr-2" />
+          <Button onClick={handleSavePDF} className="flex-1" variant="default" disabled={!!saving}>
+            {saving === "pdf" ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
             บันทึก PDF
           </Button>
-          <Button onClick={handleSavePNG} className="flex-1" variant="outline">
-            <ImageIcon className="h-4 w-4 mr-2" />
+          <Button onClick={handleSavePNG} className="flex-1" variant="outline" disabled={!!saving}>
+            {saving === "png" ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <ImageIcon className="h-4 w-4 mr-2" />}
             บันทึก PNG
           </Button>
         </div>

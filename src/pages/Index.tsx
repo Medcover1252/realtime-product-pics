@@ -146,16 +146,16 @@ const Index = () => {
               </PopoverContent>
             </Popover>
 
-            {/* Cart button */}
+            {/* Cart button in header */}
             <button
               onClick={() => setShowCart(true)}
               className="relative rounded-lg border border-white/15 p-2 text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
               title="ตะกร้าสินค้า"
             >
               <ShoppingCart className="h-4 w-4" />
-              {cart.totalItems > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white">
-                  {cart.totalItems}
+              {cart.items.length > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white">
+                  {cart.items.length}
                 </span>
               )}
             </button>
@@ -344,6 +344,17 @@ const Index = () => {
         loading={authLoading}
         error={authError}
       />
+
+      {/* Floating cart button */}
+      {cart.items.length > 0 && (
+        <button
+          onClick={() => setShowCart(true)}
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full bg-primary text-primary-foreground shadow-xl px-4 py-3 hover:bg-primary/90 active:scale-95 transition-all"
+        >
+          <ShoppingCart className="h-5 w-5" />
+          <span className="text-sm font-bold">{cart.items.length} รายการ</span>
+        </button>
+      )}
     </div>
   );
 };
