@@ -58,11 +58,18 @@ const CartDrawer = ({
     setEditingPriceId(null);
   };
 
+  const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
+
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
       <SheetContent className="flex flex-col w-full sm:max-w-md">
         <SheetHeader>
           <SheetTitle className="text-lg">🛒 ตะกร้าสินค้า</SheetTitle>
+          {items.length > 0 && (
+            <p className="text-sm text-muted-foreground">
+              {items.length} รายการ · รวม {totalQuantity} ชิ้น
+            </p>
+          )}
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto space-y-4 py-4">
@@ -134,7 +141,7 @@ const CartDrawer = ({
                               value={editPriceValue}
                               onChange={(e) => setEditPriceValue(e.target.value)}
                               onKeyDown={(e) => { if (e.key === "Enter") confirmEditPrice(item.product.id); }}
-                              className="w-20 rounded border border-primary/30 bg-background px-1.5 py-0.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                              className="w-20 rounded border border-primary/30 bg-background px-1.5 py-0.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                             />
                             <button
                               onClick={() => confirmEditPrice(item.product.id)}
@@ -172,14 +179,14 @@ const CartDrawer = ({
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => onUpdateQuantity(item.product.id, item.quantity - 1)}
-                          className="rounded-full border border-border p-1 hover:bg-muted transition-colors"
+                          className="rounded-full bg-rose-500 text-white p-1 hover:bg-rose-600 active:bg-rose-700 transition-colors shadow-sm"
                         >
                           <Minus className="h-3.5 w-3.5" />
                         </button>
-                        <span className="text-sm font-semibold w-6 text-center">{item.quantity}</span>
+                        <span className="text-sm font-bold w-8 text-center text-foreground bg-muted rounded px-1 py-0.5">{item.quantity}</span>
                         <button
                           onClick={() => onUpdateQuantity(item.product.id, item.quantity + 1)}
-                          className="rounded-full border border-border p-1 hover:bg-muted transition-colors"
+                          className="rounded-full bg-emerald-500 text-white p-1 hover:bg-emerald-600 active:bg-emerald-700 transition-colors shadow-sm"
                         >
                           <Plus className="h-3.5 w-3.5" />
                         </button>
