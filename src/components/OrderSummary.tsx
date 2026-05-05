@@ -19,16 +19,25 @@ interface Props {
 // Convert image URL to base64 to avoid CORS issues with html2canvas
 const toBase64 = (url: string): Promise<string> =>
   new Promise((resolve) => {
+    const timer = window.setTimeout(() => resolve(""), 1200);
     const img = new window.Image();
     img.crossOrigin = "anonymous";
     img.onload = () => {
-      const c = document.createElement("canvas");
-      c.width = img.naturalWidth;
-      c.height = img.naturalHeight;
-      c.getContext("2d")!.drawImage(img, 0, 0);
-      resolve(c.toDataURL("image/jpeg", 0.7));
+      try {
+        window.clearTimeout(timer);
+        const c = document.createElement("canvas");
+        c.width = img.naturalWidth;
+        c.height = img.naturalHeight;
+        c.getContext("2d")!.drawImage(img, 0, 0);
+        resolve(c.toDataURL("image/jpeg", 0.7));
+      } catch {
+        resolve("");
+      }
     };
-    img.onerror = () => resolve("");
+    img.onerror = () => {
+      window.clearTimeout(timer);
+      resolve("");
+    };
     img.src = url;
   });
 
@@ -36,6 +45,7 @@ const OrderSummary = ({ open, onClose, items, customerName, totalAmount, onClear
   const printRef = useRef<HTMLDivElement>(null);
   const [saving, setSaving] = useState<"pdf" | "png" | null>(null);
   const [imageCache, setImageCache] = useState<Record<string, string>>({});
+  const [mobileImageUrl, setMobileImageUrl] = useState<string | null>(null);
 
   // Pre-convert all product images to base64 when dialog opens
   useEffect(() => {
@@ -67,10 +77,17 @@ const OrderSummary = ({ open, onClose, items, customerName, totalAmount, onClear
   const captureCanvas = async () => {
     if (!printRef.current) return null;
     return html2canvas(printRef.current, {
-      scale: 1.5,
+      scale: 1,
       useCORS: true,
+      allowTaint: false,
       backgroundColor: "#ffffff",
+      imageTimeout: 800,
       logging: false,
+      onclone: (doc) => {
+        doc.querySelectorAll("img").forEach((img) => {
+          if (!img.src.startsWith("data:")) img.style.visibility = "hidden";
+        });
+      },
     });
   };
 
