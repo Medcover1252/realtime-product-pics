@@ -51,7 +51,7 @@ const CartDrawer = ({
     setQuantityDrafts((prev) => {
       const next: Record<string, string> = {};
       items.forEach((item) => {
-        next[item.product.id] = prev[item.product.id] ?? String(item.quantity);
+        next[item.product.id] = String(item.quantity);
       });
       return next;
     });
