@@ -19,16 +19,25 @@ interface Props {
 // Convert image URL to base64 to avoid CORS issues with html2canvas
 const toBase64 = (url: string): Promise<string> =>
   new Promise((resolve) => {
+    const timer = window.setTimeout(() => resolve(""), 1200);
     const img = new window.Image();
     img.crossOrigin = "anonymous";
     img.onload = () => {
-      const c = document.createElement("canvas");
-      c.width = img.naturalWidth;
-      c.height = img.naturalHeight;
-      c.getContext("2d")!.drawImage(img, 0, 0);
-      resolve(c.toDataURL("image/jpeg", 0.7));
+      try {
+        window.clearTimeout(timer);
+        const c = document.createElement("canvas");
+        c.width = img.naturalWidth;
+        c.height = img.naturalHeight;
+        c.getContext("2d")!.drawImage(img, 0, 0);
+        resolve(c.toDataURL("image/jpeg", 0.7));
+      } catch {
+        resolve("");
+      }
     };
-    img.onerror = () => resolve("");
+    img.onerror = () => {
+      window.clearTimeout(timer);
+      resolve("");
+    };
     img.src = url;
   });
 
@@ -36,6 +45,7 @@ const OrderSummary = ({ open, onClose, items, customerName, totalAmount, onClear
   const printRef = useRef<HTMLDivElement>(null);
   const [saving, setSaving] = useState<"pdf" | "png" | null>(null);
   const [imageCache, setImageCache] = useState<Record<string, string>>({});
+  const [mobileImageUrl, setMobileImageUrl] = useState<string | null>(null);
 
   // Pre-convert all product images to base64 when dialog opens
   useEffect(() => {
@@ -56,6 +66,12 @@ const OrderSummary = ({ open, onClose, items, customerName, totalAmount, onClear
     return () => { cancelled = true; };
   }, [open, items]);
 
+  useEffect(() => {
+    return () => {
+      if (mobileImageUrl) URL.revokeObjectURL(mobileImageUrl);
+    };
+  }, [mobileImageUrl]);
+
   const orderDate = new Date().toLocaleDateString("th-TH", {
     year: "numeric",
     month: "long",
@@ -67,10 +83,17 @@ const OrderSummary = ({ open, onClose, items, customerName, totalAmount, onClear
   const captureCanvas = async () => {
     if (!printRef.current) return null;
     return html2canvas(printRef.current, {
-      scale: 1.5,
+      scale: 1,
       useCORS: true,
+      allowTaint: false,
       backgroundColor: "#ffffff",
+      imageTimeout: 800,
       logging: false,
+      onclone: (doc) => {
+        doc.querySelectorAll("img").forEach((img) => {
+          if (!img.src.startsWith("data:")) img.style.visibility = "hidden";
+        });
+      },
     });
   };
 
@@ -115,9 +138,10 @@ const OrderSummary = ({ open, onClose, items, customerName, totalAmount, onClear
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
       if (!blob) return;
 
-      if (isMobile() && navigator.share) {
+      const file = new File([blob], `ใบสั่งซื้อ_${customerName}_${Date.now()}.png`, { type: "image/png" });
+
+      if (isMobile() && navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
         try {
-          const file = new File([blob], `ใบสั่งซื้อ_${customerName}.png`, { type: "image/png" });
           await navigator.share({ files: [file], title: "ใบสั่งซื้อ", text: `ใบสั่งซื้อ - ${customerName}` });
           return;
         } catch { /* fall through */ }
@@ -125,29 +149,8 @@ const OrderSummary = ({ open, onClose, items, customerName, totalAmount, onClear
 
       const url = URL.createObjectURL(blob);
       if (isMobile()) {
-        const w = window.open();
-        if (w) {
-          w.document.write(`
-            <html>
-              <head><title>ใบสั่งซื้อ</title><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-              <body style="margin:0;display:flex;justify-content:center;align-items:start;background:#f5f5f5;min-height:100vh">
-                <div style="text-align:center;padding:16px;width:100%">
-                  <p style="font-size:14px;color:#666;margin-bottom:12px">📱 กดค้างที่รูปเพื่อบันทึกลง Gallery</p>
-                  <img src="${url}" style="max-width:100%;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.15)" />
-                </div>
-              </body>
-            </html>
-          `);
-        } else {
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = `ใบสั่งซื้อ_${customerName}_${Date.now()}.png`;
-          a.target = "_blank";
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-        }
-        setTimeout(() => URL.revokeObjectURL(url), 30000);
+        if (mobileImageUrl) URL.revokeObjectURL(mobileImageUrl);
+        setMobileImageUrl(url);
       } else {
         const a = document.createElement("a");
         a.href = url;
@@ -233,6 +236,23 @@ const OrderSummary = ({ open, onClose, items, customerName, totalAmount, onClear
             บันทึก PNG
           </Button>
         </div>
+        {mobileImageUrl && (
+          <div className="rounded-lg border border-border bg-muted/40 p-3 text-center space-y-2">
+            <p className="text-xs text-muted-foreground">มือถือ: กดค้างที่รูปเพื่อบันทึกลง Gallery หรือกดเปิดรูป</p>
+            <a href={mobileImageUrl} target="_blank" rel="noreferrer" download={`ใบสั่งซื้อ_${customerName}.png`}>
+              <img
+                src={mobileImageUrl}
+                alt="รูปใบสั่งซื้อสำหรับบันทึก"
+                className="mx-auto max-h-72 w-auto rounded-md border border-border bg-background"
+              />
+            </a>
+            <Button asChild variant="secondary" size="sm" className="w-full">
+              <a href={mobileImageUrl} target="_blank" rel="noreferrer" download={`ใบสั่งซื้อ_${customerName}.png`}>
+                เปิดรูป / ดาวน์โหลด
+              </a>
+            </Button>
+          </div>
+        )}
         <Button
           variant="ghost"
           className="w-full text-muted-foreground"

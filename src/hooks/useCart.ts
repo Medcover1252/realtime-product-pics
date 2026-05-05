@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { Product } from "@/hooks/useGoogleSheet";
 
 export interface CartItem {
@@ -6,11 +6,41 @@ export interface CartItem {
   quantity: number;
 }
 
+const CART_STORAGE_KEY = "korea_skincare_cart_v1";
+
+interface StoredCart {
+  items?: CartItem[];
+  customerName?: string;
+  useVVIPPrice?: boolean;
+  customPrices?: Record<string, number>;
+}
+
+const loadStoredCart = (): StoredCart => {
+  try {
+    const raw = localStorage.getItem(CART_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
+
 export function useCart() {
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [customerName, setCustomerName] = useState("");
-  const [useVVIPPrice, setUseVVIPPrice] = useState(false);
-  const [customPrices, setCustomPrices] = useState<Record<string, number>>({});
+  const [storedCart] = useState(loadStoredCart);
+  const [items, setItems] = useState<CartItem[]>(() => storedCart.items || []);
+  const [customerName, setCustomerName] = useState(() => storedCart.customerName || "");
+  const [useVVIPPrice, setUseVVIPPrice] = useState(() => storedCart.useVVIPPrice || false);
+  const [customPrices, setCustomPrices] = useState<Record<string, number>>(() => storedCart.customPrices || {});
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        CART_STORAGE_KEY,
+        JSON.stringify({ items, customerName, useVVIPPrice, customPrices })
+      );
+    } catch {
+      // Ignore storage failures such as private browsing quota limits.
+    }
+  }, [items, customerName, useVVIPPrice, customPrices]);
 
   const addItem = useCallback((product: Product, qty = 1) => {
     setItems((prev) => {
