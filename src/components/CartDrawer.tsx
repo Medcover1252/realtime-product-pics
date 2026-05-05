@@ -206,7 +206,11 @@ const CartDrawer = ({
                           className="text-sm font-bold w-12 text-center text-foreground bg-muted rounded px-1 py-0.5 border border-border focus:outline-none focus:ring-1 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         />
                         <button
-                          onClick={() => onUpdateQuantity(item.product.id, item.quantity + 1)}
+                          onClick={() => {
+                            const nextQty = item.quantity + 1;
+                            setQuantityDrafts((prev) => ({ ...prev, [item.product.id]: String(nextQty) }));
+                            onUpdateQuantity(item.product.id, nextQty);
+                          }}
                           className="rounded-full bg-emerald-500 text-white p-1 hover:bg-emerald-600 active:bg-emerald-700 transition-colors shadow-sm"
                         >
                           <Plus className="h-3.5 w-3.5" />
