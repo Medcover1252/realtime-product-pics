@@ -123,7 +123,8 @@ const CartDrawer = ({
               {items.map((item) => {
                 const unitPrice = getItemPrice ? getItemPrice(item) : (Number(item.product.price) || 0);
                 const hasCustomPrice = customPrices[item.product.id] !== undefined;
-                const isEditing = editingPriceId === item.product.id;
+                const priceDraft = priceDrafts[item.product.id] ?? String(unitPrice);
+                const quantityDraft = quantityDrafts[item.product.id] ?? String(item.quantity);
 
                 return (
                   <div
@@ -143,46 +144,39 @@ const CartDrawer = ({
                       </p>
                       <p className="text-xs text-muted-foreground font-mono">{item.product.barcode}</p>
 
-                      {/* Price display / edit */}
-                      <div className="flex items-center gap-1">
-                        {isEditing ? (
-                          <div className="flex items-center gap-1">
+                      {/* Price input */}
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-medium text-muted-foreground">ราคา/ชิ้น</label>
+                        <div className="flex items-center gap-2">
+                          <div className="flex h-9 w-28 items-center rounded-md border border-input bg-background px-2 focus-within:ring-1 focus-within:ring-primary">
                             <span className="text-sm text-muted-foreground">฿</span>
                             <input
-                              autoFocus
                               type="number"
-                              value={editPriceValue}
-                              onChange={(e) => setEditPriceValue(e.target.value)}
-                              onKeyDown={(e) => { if (e.key === "Enter") confirmEditPrice(item.product.id); }}
-                              className="w-20 rounded border border-primary/30 bg-background px-1.5 py-0.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                              min={0}
+                              inputMode="decimal"
+                              value={priceDraft}
+                              onChange={(e) => handlePriceChange(item.product.id, e.target.value)}
+                              onBlur={(e) => {
+                                if (e.target.value === "") handlePriceChange(item.product.id, String(unitPrice));
+                              }}
+                              className="w-full bg-transparent px-1 text-sm font-bold text-foreground focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                             />
-                            <button
-                              onClick={() => confirmEditPrice(item.product.id)}
-                              className="rounded-full p-0.5 text-primary hover:bg-primary/10"
-                            >
-                              <Check className="h-3.5 w-3.5" />
-                            </button>
                           </div>
-                        ) : (
-                          <>
-                            <p className={`text-sm font-bold ${hasCustomPrice ? "text-orange-500" : useVVIPPrice ? "text-amber-500" : "text-primary"}`}>
-                              ฿{unitPrice.toLocaleString()} × {item.quantity} = ฿{(unitPrice * item.quantity).toLocaleString()}
-                            </p>
-                            {canSeeVVIP && (
-                              <button
-                                onClick={() => startEditPrice(item.product.id, unitPrice)}
-                                className="rounded-full p-0.5 text-muted-foreground hover:text-foreground hover:bg-muted"
-                                title="แก้ไขราคา"
-                              >
-                                <Pencil className="h-3 w-3" />
-                              </button>
-                            )}
-                          </>
-                        )}
+                          <p className={`text-sm font-bold ${hasCustomPrice ? "text-primary" : useVVIPPrice ? "text-primary" : "text-primary"}`}>
+                            รวม ฿{(unitPrice * item.quantity).toLocaleString()}
+                          </p>
+                        </div>
                       </div>
                       {hasCustomPrice && (
                         <button
-                          onClick={() => onClearCustomPrice?.(item.product.id)}
+                          onClick={() => {
+                            onClearCustomPrice?.(item.product.id);
+                            setPriceDrafts((prev) => {
+                              const next = { ...prev };
+                              delete next[item.product.id];
+                              return next;
+                            });
+                          }}
                           className="text-[10px] text-orange-500 hover:underline"
                         >
                           รีเซ็ตราคา
@@ -191,7 +185,11 @@ const CartDrawer = ({
 
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => onUpdateQuantity(item.product.id, item.quantity - 1)}
+                          onClick={() => {
+                            const nextQty = item.quantity - 1;
+                            setQuantityDrafts((prev) => ({ ...prev, [item.product.id]: String(Math.max(1, nextQty)) }));
+                            onUpdateQuantity(item.product.id, nextQty);
+                          }}
                           className="rounded-full bg-rose-500 text-white p-1 hover:bg-rose-600 active:bg-rose-700 transition-colors shadow-sm"
                         >
                           <Minus className="h-3.5 w-3.5" />
@@ -199,10 +197,11 @@ const CartDrawer = ({
                         <input
                           type="number"
                           min={1}
-                          value={item.quantity}
-                          onChange={(e) => {
-                            const val = parseInt(e.target.value, 10);
-                            if (!isNaN(val) && val > 0) onUpdateQuantity(item.product.id, val);
+                          inputMode="numeric"
+                          value={quantityDraft}
+                          onChange={(e) => handleQuantityChange(item.product.id, e.target.value)}
+                          onBlur={(e) => {
+                            if (e.target.value === "") handleQuantityChange(item.product.id, String(item.quantity));
                           }}
                           className="text-sm font-bold w-12 text-center text-foreground bg-muted rounded px-1 py-0.5 border border-border focus:outline-none focus:ring-1 focus:ring-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         />
