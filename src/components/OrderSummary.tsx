@@ -236,6 +236,23 @@ const OrderSummary = ({ open, onClose, items, customerName, totalAmount, onClear
             บันทึก PNG
           </Button>
         </div>
+        {mobileImageUrl && (
+          <div className="rounded-lg border border-border bg-muted/40 p-3 text-center space-y-2">
+            <p className="text-xs text-muted-foreground">มือถือ: กดค้างที่รูปเพื่อบันทึกลง Gallery หรือกดเปิดรูป</p>
+            <a href={mobileImageUrl} target="_blank" rel="noreferrer" download={`ใบสั่งซื้อ_${customerName}.png`}>
+              <img
+                src={mobileImageUrl}
+                alt="รูปใบสั่งซื้อสำหรับบันทึก"
+                className="mx-auto max-h-72 w-auto rounded-md border border-border bg-background"
+              />
+            </a>
+            <Button asChild variant="secondary" size="sm" className="w-full">
+              <a href={mobileImageUrl} target="_blank" rel="noreferrer" download={`ใบสั่งซื้อ_${customerName}.png`}>
+                เปิดรูป / ดาวน์โหลด
+              </a>
+            </Button>
+          </div>
+        )}
         <Button
           variant="ghost"
           className="w-full text-muted-foreground"
