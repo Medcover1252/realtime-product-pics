@@ -1,8 +1,8 @@
-import { useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Minus, Plus, Trash2, FileText, Crown, Pencil, Check } from "lucide-react";
+import { Minus, Plus, Trash2, FileText, Crown } from "lucide-react";
 import type { CartItem } from "@/hooks/useCart";
 
 interface Props {
@@ -42,23 +42,36 @@ const CartDrawer = ({
   onClearCustomPrice,
   getItemPrice,
 }: Props) => {
-  const [editingPriceId, setEditingPriceId] = useState<string | null>(null);
-  const [editPriceValue, setEditPriceValue] = useState("");
-
-  const startEditPrice = (productId: string, currentPrice: number) => {
-    setEditingPriceId(productId);
-    setEditPriceValue(String(currentPrice));
-  };
-
-  const confirmEditPrice = (productId: string) => {
-    const val = Number(editPriceValue);
-    if (!isNaN(val) && val >= 0 && onUpdateCustomPrice) {
-      onUpdateCustomPrice(productId, val);
-    }
-    setEditingPriceId(null);
-  };
+  const [priceDrafts, setPriceDrafts] = useState<Record<string, string>>({});
+  const [quantityDrafts, setQuantityDrafts] = useState<Record<string, string>>({});
 
   const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
+
+  useEffect(() => {
+    setQuantityDrafts((prev) => {
+      const next: Record<string, string> = {};
+      items.forEach((item) => {
+        next[item.product.id] = prev[item.product.id] ?? String(item.quantity);
+      });
+      return next;
+    });
+  }, [items]);
+
+  const handlePriceChange = (productId: string, value: string) => {
+    setPriceDrafts((prev) => ({ ...prev, [productId]: value }));
+    const price = Number(value);
+    if (value !== "" && !Number.isNaN(price) && price >= 0) {
+      onUpdateCustomPrice?.(productId, price);
+    }
+  };
+
+  const handleQuantityChange = (productId: string, value: string) => {
+    setQuantityDrafts((prev) => ({ ...prev, [productId]: value }));
+    const qty = Number(value);
+    if (value !== "" && Number.isInteger(qty) && qty > 0) {
+      onUpdateQuantity(productId, qty);
+    }
+  };
 
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
