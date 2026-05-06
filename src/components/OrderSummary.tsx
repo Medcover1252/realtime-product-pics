@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Download, Image as ImageIcon, Loader2 } from "lucide-react";
 import type { CartItem } from "@/hooks/useCart";
@@ -170,6 +170,7 @@ const OrderSummary = ({ open, onClose, items, customerName, totalAmount, onClear
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>📋 ใบสั่งซื้อ</DialogTitle>
+          <DialogDescription className="sr-only">รายละเอียดใบสั่งซื้อสินค้า</DialogDescription>
         </DialogHeader>
 
         {/* Printable area */}
