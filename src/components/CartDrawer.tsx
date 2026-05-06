@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Minus, Plus, Trash2, FileText, Crown } from "lucide-react";
+import { Minus, Plus, Trash2, FileText, Crown, Download, Loader2 } from "lucide-react";
 import type { CartItem } from "@/hooks/useCart";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 interface Props {
   open: boolean;
