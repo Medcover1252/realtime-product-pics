@@ -170,7 +170,7 @@ const OrderSummary = ({ open, onClose, items, customerName, totalAmount, onClear
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>📋 ใบสั่งซื้อ</DialogTitle>
-        </DialogHeader>
+          <DialogDescription className="sr-only">รายละเอียดใบสั่งซื้อสินค้า</DialogDescription>
 
         {/* Printable area */}
         <div ref={printRef} className="bg-white text-gray-900 p-6 rounded-lg space-y-4">
