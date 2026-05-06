@@ -332,15 +332,26 @@ const CartDrawer = ({
             <span className="text-sm font-medium text-muted-foreground">ยอดรวม</span>
             <span className="text-xl font-bold text-primary">฿{totalAmount.toLocaleString()}</span>
           </div>
-          <Button
-            className="w-full"
-            size="lg"
-            disabled={items.length === 0 || !customerName.trim()}
-            onClick={onGenerateOrder}
-          >
-            <FileText className="h-4 w-4 mr-2" />
-            สร้างใบสั่งซื้อ
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              className="flex-1"
+              size="lg"
+              disabled={items.length === 0 || !customerName.trim()}
+              onClick={onGenerateOrder}
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              สร้างใบสั่งซื้อ
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              disabled={items.length === 0 || !customerName.trim() || savingPdf}
+              onClick={handleQuickPDF}
+            >
+              {savingPdf ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+              PDF
+            </Button>
+          </div>
           {items.length > 0 && !customerName.trim() && (
             <p className="text-xs text-destructive text-center">กรุณากรอกชื่อลูกค้า</p>
           )}
