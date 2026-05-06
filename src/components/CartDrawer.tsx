@@ -127,17 +127,10 @@ const CartDrawer = ({
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
 
-      const fileName = `ใบสั่งซื้อ_${customerName}_${Date.now()}.pdf`;
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        const blob = pdf.output("blob");
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url; a.download = fileName; a.target = "_blank";
-        document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 5000);
-      } else {
-        pdf.save(fileName);
-      }
+      const blob = pdf.output("blob");
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
     } finally {
       setSavingPdf(false);
     }
