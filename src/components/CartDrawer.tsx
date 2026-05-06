@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Minus, Plus, Trash2, FileText, Crown } from "lucide-react";
+import { Minus, Plus, Trash2, FileText, Crown, Download, Loader2 } from "lucide-react";
 import type { CartItem } from "@/hooks/useCart";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 interface Props {
   open: boolean;
@@ -44,8 +46,102 @@ const CartDrawer = ({
 }: Props) => {
   const [priceDrafts, setPriceDrafts] = useState<Record<string, string>>({});
   const [quantityDrafts, setQuantityDrafts] = useState<Record<string, string>>({});
+  const [savingPdf, setSavingPdf] = useState(false);
+  const pdfRef = useRef<HTMLDivElement>(null);
 
   const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
+
+  const toBase64 = (url: string): Promise<string> =>
+    new Promise((resolve) => {
+      const timer = window.setTimeout(() => resolve(""), 1200);
+      const img = new window.Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        try {
+          window.clearTimeout(timer);
+          const c = document.createElement("canvas");
+          c.width = img.naturalWidth;
+          c.height = img.naturalHeight;
+          c.getContext("2d")!.drawImage(img, 0, 0);
+          resolve(c.toDataURL("image/jpeg", 0.7));
+        } catch { resolve(""); }
+      };
+      img.onerror = () => { window.clearTimeout(timer); resolve(""); };
+      img.src = url;
+    });
+
+  const handleQuickPDF = async () => {
+    if (items.length === 0 || !customerName.trim()) return;
+    setSavingPdf(true);
+    try {
+      // Build a hidden div for PDF rendering
+      const container = document.createElement("div");
+      container.style.cssText = "position:fixed;left:-9999px;top:0;width:420px;background:#fff;padding:24px;font-family:sans-serif;color:#111;";
+
+      const orderDate = new Date().toLocaleDateString("th-TH", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
+
+      // Convert images to base64
+      const imgCache: Record<string, string> = {};
+      await Promise.all(items.map(async (item) => {
+        if (item.product.imageUrl) imgCache[item.product.id] = await toBase64(item.product.imageUrl);
+      }));
+
+      let html = `<div style="text-align:center;border-bottom:1px solid #ccc;padding-bottom:12px;margin-bottom:12px;">
+        <h2 style="font-size:18px;font-weight:bold;margin:0;">ใบสั่งซื้อสินค้า</h2>
+        <p style="font-size:12px;color:#888;margin:4px 0 0;">${orderDate}</p>
+      </div>
+      <p style="font-size:13px;margin-bottom:12px;"><b>ชื่อลูกค้า:</b> ${customerName}</p>`;
+
+      items.forEach((item, idx) => {
+        const unitPrice = getItemPrice ? getItemPrice(item) : (Number(item.product.price) || 0);
+        const lineTotal = unitPrice * item.quantity;
+        const imgSrc = imgCache[item.product.id] || "";
+        html += `<div style="display:flex;gap:8px;border-bottom:1px solid #eee;padding-bottom:8px;margin-bottom:8px;">
+          <span style="font-size:11px;color:#aaa;width:16px;flex-shrink:0;">${idx + 1}.</span>
+          ${imgSrc ? `<img src="${imgSrc}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;flex-shrink:0;" />` : ""}
+          <div style="flex:1;min-width:0;">
+            <p style="font-size:12px;font-weight:600;margin:0;line-height:1.3;">${item.product.combined || item.product.nickname || item.product.barcode}</p>
+            <p style="font-size:10px;color:#aaa;margin:2px 0;font-family:monospace;">${item.product.barcode}</p>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+              <span style="font-size:11px;color:#666;">฿${unitPrice.toLocaleString()} × ${item.quantity}</span>
+              <span style="font-size:13px;font-weight:bold;">฿${lineTotal.toLocaleString()}</span>
+            </div>
+          </div>
+        </div>`;
+      });
+
+      html += `<div style="border-top:2px solid #ccc;padding-top:8px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:14px;font-weight:bold;">ยอดรวมทั้งสิ้น</span>
+        <span style="font-size:18px;font-weight:bold;color:#e11d48;">฿${totalAmount.toLocaleString()}</span>
+      </div>`;
+
+      container.innerHTML = html;
+      document.body.appendChild(container);
+
+      const canvas = await html2canvas(container, { scale: 1.5, useCORS: true, backgroundColor: "#ffffff", logging: false });
+      document.body.removeChild(container);
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.85);
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+
+      const fileName = `ใบสั่งซื้อ_${customerName}_${Date.now()}.pdf`;
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        const blob = pdf.output("blob");
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url; a.download = fileName; a.target = "_blank";
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+      } else {
+        pdf.save(fileName);
+      }
+    } finally {
+      setSavingPdf(false);
+    }
+  };
 
   useEffect(() => {
     setQuantityDrafts((prev) => {
@@ -236,15 +332,26 @@ const CartDrawer = ({
             <span className="text-sm font-medium text-muted-foreground">ยอดรวม</span>
             <span className="text-xl font-bold text-primary">฿{totalAmount.toLocaleString()}</span>
           </div>
-          <Button
-            className="w-full"
-            size="lg"
-            disabled={items.length === 0 || !customerName.trim()}
-            onClick={onGenerateOrder}
-          >
-            <FileText className="h-4 w-4 mr-2" />
-            สร้างใบสั่งซื้อ
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              className="flex-1"
+              size="lg"
+              disabled={items.length === 0 || !customerName.trim()}
+              onClick={onGenerateOrder}
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              สร้างใบสั่งซื้อ
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              disabled={items.length === 0 || !customerName.trim() || savingPdf}
+              onClick={handleQuickPDF}
+            >
+              {savingPdf ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+              PDF
+            </Button>
+          </div>
           {items.length > 0 && !customerName.trim() && (
             <p className="text-xs text-destructive text-center">กรุณากรอกชื่อลูกค้า</p>
           )}
