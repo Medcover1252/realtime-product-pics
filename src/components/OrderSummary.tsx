@@ -5,6 +5,7 @@ import { Download, Image as ImageIcon, Loader2 } from "lucide-react";
 import type { CartItem } from "@/hooks/useCart";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { toast } from "sonner";
 
 interface Props {
   open: boolean;
