@@ -74,7 +74,11 @@ const CartDrawer = ({
   const handleQuickPDF = async () => {
     if (items.length === 0 || !customerName.trim()) return;
     setSavingPdf(true);
+    const toastId = toast.loading("กำลังโหลดรูปภาพ... รอสักครู่");
     try {
+      // Open window early (before async) to avoid iOS popup blocker
+      const pdfWindow = window.open("", "_blank");
+
       // Build a hidden div for PDF rendering
       const container = document.createElement("div");
       container.style.cssText = "position:fixed;left:-9999px;top:0;width:420px;background:#fff;padding:24px;font-family:sans-serif;color:#111;";
@@ -82,10 +86,13 @@ const CartDrawer = ({
       const orderDate = new Date().toLocaleDateString("th-TH", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
 
       // Convert images to base64
+      toast.loading("กำลังโหลดรูปภาพสินค้า...", { id: toastId });
       const imgCache: Record<string, string> = {};
       await Promise.all(items.map(async (item) => {
         if (item.product.imageUrl) imgCache[item.product.id] = await toBase64(item.product.imageUrl);
       }));
+
+      toast.loading("กำลังสร้าง PDF...", { id: toastId });
 
       let html = `<div style="text-align:center;border-bottom:1px solid #ccc;padding-bottom:12px;margin-bottom:12px;">
         <h2 style="font-size:18px;font-weight:bold;margin:0;">ใบสั่งซื้อสินค้า</h2>
@@ -130,8 +137,24 @@ const CartDrawer = ({
 
       const blob = pdf.output("blob");
       const url = URL.createObjectURL(blob);
-      window.open(url, "_blank");
+
+      // Use pre-opened window for iOS compatibility
+      if (pdfWindow) {
+        pdfWindow.location.href = url;
+      } else {
+        // Fallback: download directly
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `ใบสั่งซื้อ_${customerName}_${Date.now()}.pdf`;
+        a.target = "_blank";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
       setTimeout(() => URL.revokeObjectURL(url), 60000);
+      toast.success("สร้าง PDF สำเร็จ!", { id: toastId });
+    } catch (err) {
+      toast.error("เกิดข้อผิดพลาดในการสร้าง PDF", { id: toastId });
     } finally {
       setSavingPdf(false);
     }
