@@ -102,18 +102,31 @@ const OrderSummary = ({ open, onClose, items, customerName, totalAmount, onClear
 
   const handleSavePDF = async () => {
     setSaving("pdf");
+    const toastId = toast.loading("กำลังโหลดรูปภาพ... รอสักครู่");
     try {
+      // Open window early for iOS popup blocker
+      const pdfWindow = window.open("", "_blank");
+
+      toast.loading("กำลังสร้าง PDF...", { id: toastId });
       const canvas = await captureCanvas();
-      if (!canvas) return;
+      if (!canvas) {
+        pdfWindow?.close();
+        toast.error("ไม่สามารถสร้าง PDF ได้", { id: toastId });
+        return;
+      }
       const imgData = canvas.toDataURL("image/jpeg", 0.85);
       const pdf = new jsPDF("p", "mm", "a4");
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
 
-      if (isMobile()) {
-        const pdfBlob = pdf.output("blob");
-        const url = URL.createObjectURL(pdfBlob);
+      const blob = pdf.output("blob");
+      const url = URL.createObjectURL(blob);
+
+      if (pdfWindow) {
+        pdfWindow.location.href = url;
+      } else {
+        // Fallback: download
         const a = document.createElement("a");
         a.href = url;
         a.download = `ใบสั่งซื้อ_${customerName}_${Date.now()}.pdf`;
@@ -121,10 +134,11 @@ const OrderSummary = ({ open, onClose, items, customerName, totalAmount, onClear
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 5000);
-      } else {
-        pdf.save(`ใบสั่งซื้อ_${customerName}_${Date.now()}.pdf`);
       }
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      toast.success("สร้าง PDF สำเร็จ!", { id: toastId });
+    } catch {
+      toast.error("เกิดข้อผิดพลาด", { id: toastId });
     } finally {
       setSaving(null);
     }
