@@ -6,6 +6,7 @@ import { Minus, Plus, Trash2, FileText, Crown, Download, Loader2 } from "lucide-
 import type { CartItem } from "@/hooks/useCart";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { toast } from "sonner";
 
 interface Props {
   open: boolean;
