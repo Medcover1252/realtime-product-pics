@@ -20,7 +20,7 @@ interface Props {
 // Convert image URL to base64 to avoid CORS issues with html2canvas
 const toBase64 = (url: string): Promise<string> =>
   new Promise((resolve) => {
-    const timer = window.setTimeout(() => resolve(""), 1200);
+    const timer = window.setTimeout(() => resolve(""), 5000);
     const img = new window.Image();
     img.crossOrigin = "anonymous";
     img.onload = () => {
