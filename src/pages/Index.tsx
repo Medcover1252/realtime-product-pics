@@ -11,12 +11,13 @@ import OrderSummary from "@/components/OrderSummary";
 import CategoryFilter, { type FilterKey } from "@/components/CategoryFilter";
 import SortControls, { type SortOption } from "@/components/SortControls";
 import VVIPLoginDialog from "@/components/VVIPLoginDialog";
-import { RefreshCw, Search, SlidersHorizontal, Megaphone, X, LogIn, LogOut, Crown, ShieldCheck, ArrowDownCircle, ShoppingCart } from "lucide-react";
+import { RefreshCw, Search, SlidersHorizontal, Megaphone, X, LogIn, LogOut, Crown, ArrowDownCircle, ShoppingCart } from "lucide-react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS8ZAxsN3ZCSa2VxpmMNpCPDjEubNVYJKkier6mZ_3NYnOr-of5F3HqDBgOXAL3XbzDE9T4yWv4pk0c/pubhtml";
 
@@ -44,6 +45,7 @@ const Index = () => {
   const [sort, setSort] = useState<SortOption>("");
   const [showCart, setShowCart] = useState(false);
   const [showOrder, setShowOrder] = useState(false);
+  const [activeTab, setActiveTab] = useState<"available" | "outofstock">("available");
 
   const handlePullRefresh = useCallback(async () => {
     await refresh();
@@ -80,6 +82,10 @@ const Index = () => {
     return list;
   }, [products, activeFilters, search, sort, favorites]);
 
+  const availableProducts = useMemo(() => filtered.filter((p) => Number(p.quantity) > 0), [filtered]);
+  const outOfStockProducts = useMemo(() => filtered.filter((p) => !p.quantity || Number(p.quantity) === 0), [filtered]);
+  const displayProducts = activeTab === "available" ? availableProducts : outOfStockProducts;
+
   const handleRefresh = async () => {
     setRefreshing(true);
     await refresh();
@@ -109,7 +115,7 @@ const Index = () => {
       <header className="sticky top-0 z-10 border-b border-white/10 bg-gradient-to-r from-gray-950 via-gray-900 to-gray-950 backdrop-blur-md shadow-lg">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
           <h1 className="text-xl font-bold text-white sm:text-2xl tracking-tight">
-            ✨ รายการสินค้า Updated
+            ✨ รายการสินค้า
           </h1>
           <div className="flex items-center gap-2">
             {/* Search */}
@@ -251,6 +257,13 @@ const Index = () => {
       )}
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-5">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "available" | "outofstock")} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 bg-muted/50">
+            <TabsTrigger value="available" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">รายการสินค้า Updated</TabsTrigger>
+            <TabsTrigger value="outofstock" className="data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground">สินค้าหมด</TabsTrigger>
+          </TabsList>
+        </Tabs>
+
         {/* Sort controls */}
         <SortControls value={sort} onChange={setSort} />
         {error && (
@@ -272,13 +285,13 @@ const Index = () => {
               </div>
             ))}
           </div>
-        ) : filtered.length === 0 ? (
+        ) : displayProducts.length === 0 ? (
           <div className="py-20 text-center text-muted-foreground">
-            ไม่พบสินค้า
+            {activeTab === "available" ? "ไม่พบสินค้า" : "ไม่มีสินค้าหมด"}
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {filtered.map((product) => (
+            {displayProducts.map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}
@@ -294,7 +307,8 @@ const Index = () => {
         )}
 
         <p className="text-center text-xs text-muted-foreground">
-          สินค้าทั้งหมด {products.length} รายการ
+          สินค้าทั้งหมด {displayProducts.length} รายการ
+          {activeTab === "outofstock" && " (สินค้าหมด)"}
         </p>
       </main>
 
