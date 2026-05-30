@@ -82,8 +82,8 @@ const Index = () => {
     return list;
   }, [products, activeFilters, search, sort, favorites]);
 
-  const availableProducts = useMemo(() => filtered.filter((p) => Number(p.quantity) > 0), [filtered]);
-  const outOfStockProducts = useMemo(() => filtered.filter((p) => !p.quantity || Number(p.quantity) === 0), [filtered]);
+  const availableProducts = filtered;
+  const outOfStockProducts = useMemo(() => filtered.filter((p) => p.quantity.includes("หมด")), [filtered]);
   const displayProducts = activeTab === "available" ? availableProducts : outOfStockProducts;
 
   const handleRefresh = async () => {
