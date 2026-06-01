@@ -259,7 +259,7 @@ const Index = () => {
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-5">
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "available" | "outofstock")} className="w-full">
           <TabsList className="grid w-full grid-cols-2 bg-muted/50">
-            <TabsTrigger value="available" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">รายการสินค้า Updated</TabsTrigger>
+            <TabsTrigger value="available" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">รายการสินค้าทั้งหมด Updated</TabsTrigger>
             <TabsTrigger value="outofstock" className="data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground">สินค้าหมด</TabsTrigger>
           </TabsList>
         </Tabs>
